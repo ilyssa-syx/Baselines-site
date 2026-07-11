@@ -8,9 +8,12 @@
   :root { color-scheme: light; --border: #d7dde7; --ink: #172033; --muted: #5f6b7a; --panel: #f6f8fb; }
   * { box-sizing: border-box; }
   body { margin: 0; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--ink); background: #ffffff; }
-  header { position: sticky; top: 0; z-index: 3; padding: 14px 18px; border-bottom: 1px solid var(--border); background: rgba(255,255,255,.96); }
+  header { position: sticky; top: 0; z-index: 3; display: flex; align-items: end; justify-content: space-between; gap: 18px; padding: 12px 18px; border-bottom: 1px solid var(--border); background: rgba(255,255,255,.96); }
   h1 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: 0; }
   .meta { margin-top: 4px; color: var(--muted); font-size: 12px; }
+  .example-picker { width: min(560px, 48vw); }
+  .example-picker label { display: block; margin-bottom: 4px; color: var(--muted); font-size: 11px; }
+  .example-picker select { width: 100%; min-height: 34px; border: 1px solid #b8c2d0; border-radius: 6px; background: #fff; padding: 5px 8px; color: var(--ink); font: inherit; font-size: 12px; }
   main { padding: 16px 18px 28px; }
   table { width: 100%; border-collapse: collapse; table-layout: fixed; }
   th, td { border: 1px solid var(--border); vertical-align: top; }
@@ -45,12 +48,13 @@
   button { border: 1px solid #b8c2d0; background: #fff; border-radius: 6px; padding: 5px 9px; font-size: 12px; }
   input[type="range"] { width: 100%; min-width: 0; }
   .frame-readout { min-width: 86px; text-align: right; color: var(--muted); font-size: 11px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  @media (max-width: 800px) { header { align-items: stretch; flex-direction: column; } .example-picker { width: 100%; } th { top: 104px; } }
 </style>
 </head>
 <body>
 <header>
-  <h1>Baseline Pipeline Viewer</h1>
-  <div class="meta" id="summary"></div>
+  <div><h1>Baseline Pipeline Viewer</h1><div class="meta" id="summary"></div></div>
+  <div class="example-picker"><label for="example-select">Example</label><select id="example-select"></select></div>
 </header>
 <main>
   <table id="viewer-table"></table>
@@ -204,6 +208,7 @@ function buildTable() {
 
   for (const ex of DATA.examples) {
     const videoRow = document.createElement("tr");
+    videoRow.dataset.exampleId = ex.id;
     videoRow.innerHTML = `
       <td class="example" rowspan="4">
         <div class="example-title">${escapeHtml(ex.label)}</div>
@@ -214,19 +219,45 @@ function buildTable() {
     table.appendChild(videoRow);
 
     const layoutRow = document.createElement("tr");
+    layoutRow.dataset.exampleId = ex.id;
     layoutRow.innerHTML = `<td class="rowlabel">2D layout</td>${DATA.baselines.map(b => baselineCell(ex, b, "layout")).join("")}`;
     table.appendChild(layoutRow);
 
     const viewerRow = document.createElement("tr");
+    viewerRow.dataset.exampleId = ex.id;
     viewerRow.innerHTML = `<td class="rowlabel">3D viewer</td>${DATA.baselines.map(b => baselineCell(ex, b, "viewer")).join("")}`;
     table.appendChild(viewerRow);
 
     const pointmapRow = document.createElement("tr");
+    pointmapRow.dataset.exampleId = ex.id;
     pointmapRow.innerHTML = `<td class="rowlabel">VGGT depth pointmap</td><td colspan="${DATA.baselines.length}">${pointmapCell(ex)}</td>`;
     table.appendChild(pointmapRow);
   }
 
-  document.getElementById("summary").textContent = `${DATA.examples.length} examples, ${DATA.baselines.map(b => DATA.baselineLabels[b] || b).join(" / ")}; broken outputs are skipped.`;
+  const select = document.getElementById("example-select");
+  for (const ex of DATA.examples) {
+    const option = document.createElement("option");
+    option.value = ex.id;
+    option.textContent = ex.label;
+    select.appendChild(option);
+  }
+  const requested = Number(new URLSearchParams(location.search).get("example"));
+  const initial = DATA.examples.some(ex => ex.id === requested) ? requested : DATA.examples[0].id;
+  select.value = String(initial);
+  select.addEventListener("change", () => showExample(Number(select.value)));
+  showExample(initial);
+}
+
+function showExample(exampleId) {
+  for (const row of document.querySelectorAll("tr[data-example-id]")) {
+    row.hidden = Number(row.dataset.exampleId) !== exampleId;
+  }
+  const example = DATA.examples.find(ex => ex.id === exampleId);
+  document.getElementById("summary").textContent = `Showing 1 of ${DATA.examples.length} examples · ${DATA.baselines.map(b => DATA.baselineLabels[b] || b).join(" / ")}`;
+  const url = new URL(location.href);
+  url.searchParams.set("example", String(exampleId));
+  history.replaceState(null, "", url);
+  document.title = example ? `${example.label} · Baseline Viewer` : "Baseline Pipeline Viewer";
 }
 
 function pointmapCell(ex) {
@@ -941,7 +972,7 @@ for (const input of document.querySelectorAll('input[data-action="layout-offset"
 }
 
 function isNearViewport(element) {
-  if (!element) return false;
+  if (!element || element.offsetParent === null) return false;
   const rect = element.getBoundingClientRect();
   const margin = Math.max(400, window.innerHeight * 0.75);
   return rect.bottom >= -margin && rect.top <= window.innerHeight + margin;
