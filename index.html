@@ -26,7 +26,10 @@
   video { background: #0d1117; display: block; }
   .input-video { width: min(720px, 100%); max-height: 280px; }
   .missing { min-height: 190px; display: grid; place-items: center; color: #7b8490; background: #f8fafc; border: 1px dashed #c8d0dc; font-size: 12px; }
-  .cell-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; font-size: 12px; color: var(--muted); }
+  .cell-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; margin-bottom: 6px; font-size: 12px; color: var(--muted); }
+  .cell-title span { min-width: 0; }
+  .cell-title span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cell-title span:last-child { flex: 0 0 auto; text-align: right; }
   canvas { display: block; width: 100%; background: #fbfcff; border: 1px solid #d9e0ea; }
   .layout-pair { display: grid; grid-template-columns: minmax(220px, 1fr); gap: 8px; align-items: start; }
   .layout-panel-title { margin-bottom: 4px; font-size: 12px; text-align: center; color: var(--ink); }
@@ -285,10 +288,10 @@ function baselineCell(ex, baseline, kind) {
     const overlayVideo = entry.overlayVideoSrc
       ? `<video class="layout-video lazy-video" data-src="${escapeHtml(entry.overlayVideoSrc)}" controls muted loop playsinline preload="none"></video>`
       : `<div class="layout-video-missing">2D overlay mp4 not rendered</div>`;
-    return `<td><div class="cell-title"><span>${escapeHtml(entry.seqName)}</span><span>${entry.numFrames} frames</span></div><div class="layout-pair"><div><div class="layout-panel-title">pred mesh</div>${overlayVideo}</div></div></td>`;
+    return `<td><div class="cell-title"><span title="${escapeHtml(entry.seqName)}">${escapeHtml(entry.seqName)}</span><span>${entry.numFrames} frames</span></div><div class="layout-pair"><div><div class="layout-panel-title">pred mesh</div>${overlayVideo}</div></div></td>`;
   }
   return `<td>
-    <div class="cell-title"><span>${escapeHtml(entry.seqName)}</span><span>${entry.handSide} hand</span></div>
+    <div class="cell-title"><span title="${escapeHtml(entry.seqName)}">${escapeHtml(entry.seqName)}</span><span>${entry.handSide} hand</span></div>
     <canvas id="${id}" class="viewer-canvas" data-example="${ex.id}" data-baseline="${baseline}"></canvas>
     <div class="controls"><button type="button" data-action="play" data-target="${id}">Pause</button><input type="range" min="0" max="${entry.numFrames - 1}" value="0" data-action="seek" data-target="${id}"><span class="frame-readout" id="${id}-readout">0 / ${entry.numFrames - 1}</span></div>
   </td>`;
