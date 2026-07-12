@@ -120,27 +120,6 @@ function transformObject(entry, frame, out) {
   return out;
 }
 
-function frameFit(hand, objectVerts) {
-  let minX = Infinity, minY = Infinity, minZ = Infinity;
-  let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
-  function add(verts) {
-    for (let i = 0; i < verts.length; i += 3) {
-      const x = verts[i], y = verts[i + 1], z = verts[i + 2];
-      if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(z)) continue;
-      minX = Math.min(minX, x); minY = Math.min(minY, y); minZ = Math.min(minZ, z);
-      maxX = Math.max(maxX, x); maxY = Math.max(maxY, y); maxZ = Math.max(maxZ, z);
-    }
-  }
-  add(hand);
-  add(objectVerts);
-  if (!Number.isFinite(minX)) return {center: [0, 0, 0], scale: 1};
-  const extent = Math.max(maxX - minX, maxY - minY, maxZ - minZ, 1e-4);
-  return {
-    center: [(minX + maxX) * 0.5, (minY + maxY) * 0.5, (minZ + maxZ) * 0.5],
-    scale: Math.min(8, 0.62 / extent),
-  };
-}
-
 function makeEdges(indices) {
   const seen = new Set();
   const edges = [];
@@ -343,13 +322,11 @@ class WebglViewer {
 
   initGl() {
     const gl = this.gl;
-    const vs = `attribute vec3 position; uniform mat3 uRot; uniform vec3 uCenter; uniform float uFit; uniform float uZoom; uniform float uAspect; void main(){ vec3 centered = (position - uCenter) * uFit; vec3 cam = vec3(centered.x, -centered.y, centered.z); vec3 p = uRot * cam; gl_Position = vec4(p.x/(uZoom*uAspect), p.y/uZoom, p.z*0.10, 1.0); }`;
+    const vs = `attribute vec3 position; uniform mat3 uRot; uniform float uZoom; uniform float uAspect; void main(){ vec3 cam = vec3(position.x, -position.y, position.z); vec3 p = uRot * cam; gl_Position = vec4(p.x/(uZoom*uAspect), p.y/uZoom, p.z*0.10, 1.0); }`;
     const fs = `precision mediump float; uniform vec4 uColor; void main(){ gl_FragColor = uColor; }`;
     this.program = makeProgram(gl, vs, fs);
     this.positionLoc = gl.getAttribLocation(this.program, "position");
     this.rotLoc = gl.getUniformLocation(this.program, "uRot");
-    this.centerLoc = gl.getUniformLocation(this.program, "uCenter");
-    this.fitLoc = gl.getUniformLocation(this.program, "uFit");
     this.zoomLoc = gl.getUniformLocation(this.program, "uZoom");
     this.aspectLoc = gl.getUniformLocation(this.program, "uAspect");
     this.colorLoc = gl.getUniformLocation(this.program, "uColor");
@@ -413,9 +390,6 @@ class WebglViewer {
     const handOffset = this.frame * 778 * 3;
     const hand = this.entry.handVerts.subarray(handOffset, handOffset + 778 * 3);
     transformObject(this.entry, this.frame, this.entry.objFrameVerts);
-    const fit = frameFit(hand, this.entry.objFrameVerts);
-    gl.uniform3fv(this.centerLoc, fit.center);
-    gl.uniform1f(this.fitLoc, fit.scale);
 
     bindFloatBuffer(gl, this.positionLoc, this.handBuffer, hand, gl.DYNAMIC_DRAW);
     drawIndexed(gl, this.handFaceBuffer, this.entry.handFaces.length, this.colorLoc, [0.84, 0.72, 0.58, 0.92], gl.TRIANGLES);
