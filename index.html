@@ -313,7 +313,7 @@ function pointmapCell(ex, key, title) {
   const spec = ex[key];
   if (!spec) return `<div class="missing">${escapeHtml(title)} not found</div>`;
   const id = `${key}-${ex.id}`;
-  const video = ex.videoSrc ? `<video class="pointmap-video lazy-video" data-src="${escapeHtml(ex.videoSrc)}" muted playsinline preload="auto"></video>` : "";
+  const video = ex.videoSrc ? `<video class="pointmap-video" data-src="${escapeHtml(ex.videoSrc)}" muted playsinline preload="auto"></video>` : "";
   return `<div class="cell-title"><span>${escapeHtml(title)} <span id="${id}-frame">frame 0</span></span><span class="pointmap-meta">${Number(spec.numPoints).toLocaleString()} RGB points · ${spec.numFrames} frames · stride ${spec.stride}</span></div><canvas id="${id}" class="pointmap-canvas" data-example="${ex.id}" data-pointmap="${key}"></canvas>${video}`;
 }
 
@@ -323,7 +323,7 @@ function escapeHtml(s) {
 
 function videoHtml(ex) {
   if (!ex.videoSrc) return `<div class="missing">input video not found</div>`;
-  return `<video class="input-video lazy-video" data-src="${escapeHtml(ex.videoSrc)}" controls preload="none"></video>`;
+  return `<video class="input-video" src="${escapeHtml(ex.videoSrc)}" controls playsinline preload="metadata"></video>`;
 }
 
 function baselineCell(ex, baseline, kind) {
@@ -913,20 +913,14 @@ const pairs = Array.from(document.querySelectorAll(".viewer-canvas")).map(canvas
     readout: document.getElementById(`${canvas.id}-readout`),
   };
 });
-const POINTMAP_SYNC_BASELINES = [
-  "vggt_omega_depth_vggt_new_mesh_gt",
-  "depth_gt_mesh_gt",
-  "egoinfinity_gt",
-];
 const pointmapPairs = Array.from(document.querySelectorAll(".pointmap-canvas")).map(canvas => {
-  const sameExample = pairs.filter(pair => pair.canvas.dataset.example === canvas.dataset.example);
   return {
     canvas,
     spec: DATA.examples[Number(canvas.dataset.example)][canvas.dataset.pointmap],
     video: canvas.parentElement.querySelector(".pointmap-video"),
-    linkedPair: POINTMAP_SYNC_BASELINES
-      .map(baseline => sameExample.find(pair => pair.canvas.dataset.baseline === baseline))
-      .find(Boolean) || sameExample[0] || null,
+    frame: 0,
+    frameCarry: 0,
+    playing: true,
     asset: null,
     viewer: null,
     loading: null,
@@ -1112,11 +1106,18 @@ function animate(now) {
       releasePointmap(pair);
       continue;
     }
+    if (pair.playing && pair.spec.numFrames > 1) {
+      const example = DATA.examples[Number(pair.canvas.dataset.example)];
+      pair.frameCarry += dt * (Number(example.fps) || LAYOUT_FPS);
+      const steps = Math.floor(pair.frameCarry);
+      if (steps > 0) {
+        pair.frame = (pair.frame + steps) % pair.spec.numFrames;
+        pair.frameCarry -= steps;
+      }
+    }
     const viewer = ensurePointmap(pair);
     if (viewer) {
-      const frame = pair.linkedPair ? pair.linkedPair.frame : 0;
-      const playing = pair.linkedPair ? pair.linkedPair.playing : false;
-      viewer.setFrame(frame, playing);
+      viewer.setFrame(pair.frame, pair.playing);
       viewer.draw();
     }
   }
