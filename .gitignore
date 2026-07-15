@@ -1,2 +1,3 @@
 # Generated visualization sidecars are hosted in object storage, not Pages.
 pointmaps_assets/
+mesh_assets/
