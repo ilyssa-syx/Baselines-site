@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pose tracking comparison</title>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.179.1/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.179.1/examples/jsm/"
+  }
+}
+</script>
+<style>
+  :root { color-scheme:light; --ink:#172033; --muted:#657087; --line:#d9dfeb; --panel:#fff; --bg:#f5f7fb; --accent:#315ee8; }
+  * { box-sizing:border-box; }
+  body { margin:0; color:var(--ink); background:var(--bg); font:14px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+  header { position:sticky; top:0; z-index:20; padding:14px 20px 12px; border-bottom:1px solid var(--line); background:rgba(255,255,255,.97); backdrop-filter:blur(10px); }
+  .title-row { display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:10px; }
+  h1 { margin:0; font-size:22px; }
+  .summary,.hint,.status { color:var(--muted); }
+  .toolbar { display:flex; flex-wrap:wrap; align-items:end; gap:9px; }
+  label.control { display:grid; gap:4px; color:var(--muted); font-size:11px; font-weight:750; }
+  select,input,button { min-height:35px; border:1px solid var(--line); border-radius:8px; background:#fff; color:var(--ink); font:inherit; }
+  select { min-width:min(430px,80vw); padding:5px 9px; }
+  input[type="number"] { width:84px; padding:5px 8px; font-variant-numeric:tabular-nums; }
+  button { padding:5px 12px; cursor:pointer; font-weight:750; }
+  button:hover,button[aria-pressed="true"] { border-color:var(--accent); color:var(--accent); background:#f4f7ff; }
+  .timeline { flex:1 1 320px; min-width:min(360px,90vw); }
+  input[type="range"] { width:100%; min-height:35px; padding:0; accent-color:var(--accent); }
+  main { max-width:1800px; margin:auto; padding:17px; }
+  .methods { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+  .method { display:flex; align-items:center; gap:7px; min-height:34px; padding:6px 9px; border:1px solid var(--line); border-radius:9px; background:#fff; cursor:pointer; }
+  .method input { min-height:auto; margin:0; accent-color:var(--method-color); }
+  .swatch { width:10px; height:10px; border-radius:50%; background:var(--method-color); box-shadow:0 0 0 2px color-mix(in srgb,var(--method-color) 22%,transparent); }
+  .method-name { font-size:12px; font-weight:700; }
+  .availability { color:var(--muted); font-size:11px; font-variant-numeric:tabular-nums; }
+  .panels { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(380px,.8fr); gap:15px; }
+  .panel { min-width:0; overflow:hidden; border:1px solid var(--line); border-radius:12px; background:var(--panel); box-shadow:0 8px 24px rgba(29,42,72,.06); }
+  .panel-head { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:45px; padding:9px 13px; border-bottom:1px solid var(--line); }
+  .panel-head h2 { margin:0; font-size:14px; }
+  .panel-head button { min-height:29px; padding:3px 9px; font-size:12px; }
+  .overlay-wrap { position:relative; width:100%; aspect-ratio:var(--image-aspect,4/3); overflow:hidden; background:#090d17; }
+  .overlay-wrap video,.overlay-wrap canvas { position:absolute; inset:0; width:100%; height:100%; display:block; }
+  .overlay-wrap video { object-fit:fill; }
+  .overlay-wrap canvas { pointer-events:none; }
+  #world { display:block; width:100%; height:clamp(420px,52vw,720px); background:radial-gradient(circle at 50% 38%,#fdfefe 0,#e8edf4 72%,#dce3ec 100%); cursor:grab; }
+  #world:active { cursor:grabbing; }
+  .panel-note { min-height:42px; padding:9px 13px; border-top:1px solid var(--line); color:var(--muted); font-size:12px; }
+  .loading { position:absolute; inset:0; display:grid; place-items:center; padding:20px; color:#fff; background:rgba(7,12,23,.72); text-align:center; z-index:5; }
+  .loading[hidden] { display:none; }
+  .error { color:#b42318; }
+  .readout { min-width:195px; color:var(--muted); font-size:12px; font-variant-numeric:tabular-nums; text-align:right; }
+  .footer-hint { margin:12px 2px 0; color:var(--muted); font-size:12px; }
+  @media (max-width:1000px) { .panels { grid-template-columns:1fr; } #world { height:520px; } }
+  @media (max-width:600px) { header { padding:12px; } main { padding:10px; } .title-row { align-items:start; } h1 { font-size:19px; } .summary { text-align:right; } .readout { min-width:0; } #world { height:430px; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="title-row">
+    <h1>Pose tracking comparison</h1>
+    <span class="summary" id="summary"></span>
+  </div>
+  <div class="toolbar">
+    <label class="control">Dataset / example<select id="example"></select></label>
+    <button id="play" type="button">Play</button>
+    <label class="control timeline">Frame<input id="frame" type="range" min="0" max="0" value="0" step="1"></label>
+    <label class="control">Frame #<input id="frame-number" type="number" min="0" max="0" value="0" step="1"></label>
+    <label class="control">Playback FPS<input id="fps" type="number" min="1" max="30" value="10" step="0.5"></label>
+    <span class="readout" id="readout">Frame 0</span>
+  </div>
+</header>
+<main>
+  <div class="methods" id="methods" aria-label="Visible experiments"></div>
+  <div class="panels">
+    <section class="panel">
+      <div class="panel-head"><h2>2D mesh overlay</h2><span class="status" id="overlay-status">Waiting</span></div>
+      <div class="overlay-wrap" id="overlay-wrap">
+        <video id="video" muted playsinline preload="auto" crossorigin="anonymous"></video>
+        <canvas id="overlay"></canvas>
+        <div class="loading" id="loading">Loading pose bundle and meshes…</div>
+      </div>
+      <div class="panel-note">Projected textured-mesh geometry is recolored by experiment. The overlay uses each frame’s camera intrinsics and the same pose matrix as the 3D panel.</div>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><h2>3D camera-space pose</h2><button id="reset-view" type="button">Reset view</button></div>
+      <canvas id="world"></canvas>
+      <div class="panel-note">The camera origin and axes are fixed; drag to orbit, scroll to zoom, and right-drag to pan. All visible methods share metric camera coordinates.</div>
+    </section>
+  </div>
+  <p class="footer-hint" id="hint">Choose experiments with the colored toggles. Missing poses from an unfinished run are hidden only on the affected frames.</p>
+</main>
+
+<script type="module">
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+
+const MANIFEST={"schemaVersion":1,"methods":[{"key":"sam3d_gt_depth","label":"SAM3D + GT depth","color":"#ef4444"},{"key":"foundationpose_gt_depth_gt_mesh","label":"FoundationPose + GT depth + GT mesh","color":"#f59e0b"},{"key":"foundationpose_vggt_depth_gt_mesh","label":"FoundationPose + VGGT depth + GT mesh","color":"#22c55e"},{"key":"foundationpose_vggt_depth_sam3d_mesh","label":"FoundationPose + VGGT depth + SAM3D mesh","color":"#3b82f6"},{"key":"foundationpose_vggt_depth_forehoi_mesh","label":"FoundationPose + VGGT depth + ForeHOI mesh","color":"#a855f7"}],"examples":[{"key":"Custom/0416-mug","label":"Custom / 0416-mug","dataset":"Custom","sample":"0416-mug","frameCount":200,"sourceFrameCount":600,"sourceFps":30.0,"renderedFps":10.0,"frameStride":3,"imageWidth":640,"imageHeight":480,"videoSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/videos/custom-0416-mug.mp4?v=024574fcf7f3","dataSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/data/custom-0416-mug.poses.json.gz?v=368dfb3e8499","methods":{"sam3d_gt_depth":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/sam3d_gt_depth/Custom/0416-mug/model.glb?v=5e0be45c751e","availableFrames":200},"foundationpose_gt_depth_gt_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/gt/Custom/0416-mug/model.glb?v=e5d0043ce9ba","availableFrames":200},"foundationpose_vggt_depth_gt_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/gt/Custom/0416-mug/model.glb?v=e5d0043ce9ba","availableFrames":200},"foundationpose_vggt_depth_sam3d_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/sam3d_vggt_depth/Custom/0416-mug/model.glb?v=0f4158a821ab","availableFrames":200},"foundationpose_vggt_depth_forehoi_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/forehoi_vggt_depth/Custom/0416-mug/model.glb?v=9a0a681e2bc4","availableFrames":200}}},{"key":"Custom/0417-mug","label":"Custom / 0417-mug","dataset":"Custom","sample":"0417-mug","frameCount":183,"sourceFrameCount":600,"sourceFps":30.0,"renderedFps":10.0,"frameStride":3,"imageWidth":640,"imageHeight":480,"videoSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/videos/custom-0417-mug.mp4?v=5090155d7822","dataSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/data/custom-0417-mug.poses.json.gz?v=ebb9d8b37c64","methods":{"sam3d_gt_depth":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/sam3d_gt_depth/Custom/0417-mug/model.glb?v=fda8caa3ba35","availableFrames":183},"foundationpose_gt_depth_gt_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/gt/Custom/0417-mug/model.glb?v=3015f866d449","availableFrames":183},"foundationpose_vggt_depth_gt_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/gt/Custom/0417-mug/model.glb?v=3015f866d449","availableFrames":183},"foundationpose_vggt_depth_sam3d_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/sam3d_vggt_depth/Custom/0417-mug/model.glb?v=6ff5a3657edb","availableFrames":183},"foundationpose_vggt_depth_forehoi_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/forehoi_vggt_depth/Custom/0417-mug/model.glb?v=fa81882df9d3","availableFrames":183}}},{"key":"Custom/0422-bottle-2","label":"Custom / 0422-bottle-2","dataset":"Custom","sample":"0422-bottle-2","frameCount":200,"sourceFrameCount":600,"sourceFps":30.0,"renderedFps":10.0,"frameStride":3,"imageWidth":640,"imageHeight":480,"videoSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/videos/custom-0422-bottle-2.mp4?v=a89496bd1d63","dataSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/data/custom-0422-bottle-2.poses.json.gz?v=0818ce9e9134","methods":{"sam3d_gt_depth":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/sam3d_gt_depth/Custom/0422-bottle-2/model.glb?v=b14acf6524b2","availableFrames":200},"foundationpose_gt_depth_gt_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/gt/Custom/0422-bottle-2/model.glb?v=88a12a34b7e0","availableFrames":200},"foundationpose_vggt_depth_gt_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/gt/Custom/0422-bottle-2/model.glb?v=88a12a34b7e0","availableFrames":200},"foundationpose_vggt_depth_sam3d_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/sam3d_vggt_depth/Custom/0422-bottle-2/model.glb?v=cd401bc41d38","availableFrames":200},"foundationpose_vggt_depth_forehoi_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/forehoi_vggt_depth/Custom/0422-bottle-2/model.glb?v=0d5be39682d4","availableFrames":200}}},{"key":"DexYCB/20200709-subject-01_20200709_141931_841412060263","label":"DexYCB / 20200709-subject-01_20200709_141931_841412060263","dataset":"DexYCB","sample":"20200709-subject-01_20200709_141931_841412060263","frameCount":24,"sourceFrameCount":72,"sourceFps":30.0,"renderedFps":10.0,"frameStride":3,"imageWidth":640,"imageHeight":480,"videoSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/videos/dexycb-20200709-subject-01-20200709-141931-841412060263.mp4?v=ba8c0c602270","dataSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/data/dexycb-20200709-subject-01-20200709-141931-841412060263.poses.json.gz?v=c440c59c45b8","methods":{"sam3d_gt_depth":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/sam3d_gt_depth/DexYCB/20200709-subject-01_20200709_141931_841412060263/model.glb?v=b1d07e7c2496","availableFrames":24},"foundationpose_gt_depth_gt_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/gt/DexYCB/20200709-subject-01_20200709_141931_841412060263/model.glb?v=552f74d9a654","availableFrames":24},"foundationpose_vggt_depth_gt_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/gt/DexYCB/20200709-subject-01_20200709_141931_841412060263/model.glb?v=552f74d9a654","availableFrames":24},"foundationpose_vggt_depth_sam3d_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/sam3d_vggt_depth/DexYCB/20200709-subject-01_20200709_141931_841412060263/model.glb?v=036e1a740ab2","availableFrames":24},"foundationpose_vggt_depth_forehoi_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/forehoi_vggt_depth/DexYCB/20200709-subject-01_20200709_141931_841412060263/model.glb?v=3e7b33c96a62","availableFrames":24}}},{"key":"DexYCB/20200709-subject-01_20200709_145544_932122060857","label":"DexYCB / 20200709-subject-01_20200709_145544_932122060857","dataset":"DexYCB","sample":"20200709-subject-01_20200709_145544_932122060857","frameCount":25,"sourceFrameCount":74,"sourceFps":30.0,"renderedFps":10.0,"frameStride":3,"imageWidth":640,"imageHeight":480,"videoSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/videos/dexycb-20200709-subject-01-20200709-145544-932122060857.mp4?v=a517353fbf0f","dataSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/data/dexycb-20200709-subject-01-20200709-145544-932122060857.poses.json.gz?v=2d3f9aaea228","methods":{"sam3d_gt_depth":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/sam3d_gt_depth/DexYCB/20200709-subject-01_20200709_145544_932122060857/model.glb?v=6de13bb8c3f7","availableFrames":25},"foundationpose_gt_depth_gt_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/gt/DexYCB/20200709-subject-01_20200709_145544_932122060857/model.glb?v=21b43baeec23","availableFrames":25},"foundationpose_vggt_depth_gt_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/gt/DexYCB/20200709-subject-01_20200709_145544_932122060857/model.glb?v=21b43baeec23","availableFrames":25},"foundationpose_vggt_depth_sam3d_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/sam3d_vggt_depth/DexYCB/20200709-subject-01_20200709_145544_932122060857/model.glb?v=23ad4ec16cd7","availableFrames":25},"foundationpose_vggt_depth_forehoi_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/forehoi_vggt_depth/DexYCB/20200709-subject-01_20200709_145544_932122060857/model.glb?v=c91711c5c1b1","availableFrames":25}}},{"key":"DexYCB/20200709-subject-01_20200709_152332_839512060362","label":"DexYCB / 20200709-subject-01_20200709_152332_839512060362","dataset":"DexYCB","sample":"20200709-subject-01_20200709_152332_839512060362","frameCount":25,"sourceFrameCount":74,"sourceFps":30.0,"renderedFps":10.0,"frameStride":3,"imageWidth":640,"imageHeight":480,"videoSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/videos/dexycb-20200709-subject-01-20200709-152332-839512060362.mp4?v=42580677b396","dataSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/data/dexycb-20200709-subject-01-20200709-152332-839512060362.poses.json.gz?v=c82b694cd641","methods":{"sam3d_gt_depth":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/sam3d_gt_depth/DexYCB/20200709-subject-01_20200709_152332_839512060362/model.glb?v=41ebc3b5ed32","availableFrames":25},"foundationpose_gt_depth_gt_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/gt/DexYCB/20200709-subject-01_20200709_152332_839512060362/model.glb?v=2ba2536b6125","availableFrames":25},"foundationpose_vggt_depth_gt_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/gt/DexYCB/20200709-subject-01_20200709_152332_839512060362/model.glb?v=2ba2536b6125","availableFrames":25},"foundationpose_vggt_depth_sam3d_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/sam3d_vggt_depth/DexYCB/20200709-subject-01_20200709_152332_839512060362/model.glb?v=6ffd86ddbc8c","availableFrames":25},"foundationpose_vggt_depth_forehoi_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/forehoi_vggt_depth/DexYCB/20200709-subject-01_20200709_152332_839512060362/model.glb?v=4a2bcd1c5b23","availableFrames":25}}},{"key":"DexYCB/20200709-subject-01_20200709_152757_840412060917","label":"DexYCB / 20200709-subject-01_20200709_152757_840412060917","dataset":"DexYCB","sample":"20200709-subject-01_20200709_152757_840412060917","frameCount":23,"sourceFrameCount":72,"sourceFps":30.0,"renderedFps":10.0,"frameStride":3,"imageWidth":640,"imageHeight":480,"videoSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/videos/dexycb-20200709-subject-01-20200709-152757-840412060917.mp4?v=085ff0c54676","dataSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/data/dexycb-20200709-subject-01-20200709-152757-840412060917.poses.json.gz?v=c4f649c163b7","methods":{"sam3d_gt_depth":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/sam3d_gt_depth/DexYCB/20200709-subject-01_20200709_152757_840412060917/model.glb?v=a0daa2b1d4ca","availableFrames":23},"foundationpose_gt_depth_gt_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/gt/DexYCB/20200709-subject-01_20200709_152757_840412060917/model.glb?v=b14516f1a3be","availableFrames":23},"foundationpose_vggt_depth_gt_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/gt/DexYCB/20200709-subject-01_20200709_152757_840412060917/model.glb?v=b14516f1a3be","availableFrames":23},"foundationpose_vggt_depth_sam3d_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/sam3d_vggt_depth/DexYCB/20200709-subject-01_20200709_152757_840412060917/model.glb?v=6807c524f4fe","availableFrames":23},"foundationpose_vggt_depth_forehoi_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/forehoi_vggt_depth/DexYCB/20200709-subject-01_20200709_152757_840412060917/model.glb?v=15da1c1daf6b","availableFrames":23}}},{"key":"DexYCB/20200709-subject-01_20200709_153103_932122061900","label":"DexYCB / 20200709-subject-01_20200709_153103_932122061900","dataset":"DexYCB","sample":"20200709-subject-01_20200709_153103_932122061900","frameCount":24,"sourceFrameCount":72,"sourceFps":30.0,"renderedFps":10.0,"frameStride":3,"imageWidth":640,"imageHeight":480,"videoSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/videos/dexycb-20200709-subject-01-20200709-153103-932122061900.mp4?v=51b6018630de","dataSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/data/dexycb-20200709-subject-01-20200709-153103-932122061900.poses.json.gz?v=a1aebf930bc6","methods":{"sam3d_gt_depth":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/sam3d_gt_depth/DexYCB/20200709-subject-01_20200709_153103_932122061900/model.glb?v=8625d02b4fc9","availableFrames":24},"foundationpose_gt_depth_gt_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/gt/DexYCB/20200709-subject-01_20200709_153103_932122061900/model.glb?v=bb0783b91f79","availableFrames":24},"foundationpose_vggt_depth_gt_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/gt/DexYCB/20200709-subject-01_20200709_153103_932122061900/model.glb?v=bb0783b91f79","availableFrames":24},"foundationpose_vggt_depth_sam3d_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/sam3d_vggt_depth/DexYCB/20200709-subject-01_20200709_153103_932122061900/model.glb?v=7e911d1e9a6b","availableFrames":24},"foundationpose_vggt_depth_forehoi_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/forehoi_vggt_depth/DexYCB/20200709-subject-01_20200709_153103_932122061900/model.glb?v=104e2c53a503","availableFrames":24}}},{"key":"HO3D/train_ABF10","label":"HO3D / train_ABF10","dataset":"HO3D","sample":"train_ABF10","frameCount":116,"sourceFrameCount":1383,"sourceFps":30.0,"renderedFps":2.5,"frameStride":12,"imageWidth":640,"imageHeight":480,"videoSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/videos/ho3d-train-abf10.mp4?v=21ad98f14773","dataSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/data/ho3d-train-abf10.poses.json.gz?v=acba118ec607","methods":{"sam3d_gt_depth":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/sam3d_gt_depth/HO3D/train_ABF10/model.glb?v=38703500d493","availableFrames":116},"foundationpose_gt_depth_gt_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/gt/HO3D/train_ABF10/model.glb?v=c60992e675c4","availableFrames":116},"foundationpose_vggt_depth_gt_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/gt/HO3D/train_ABF10/model.glb?v=c60992e675c4","availableFrames":116},"foundationpose_vggt_depth_sam3d_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/sam3d_vggt_depth/HO3D/train_ABF10/model.glb?v=a9a7c6abf675","availableFrames":116},"foundationpose_vggt_depth_forehoi_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/forehoi_vggt_depth/HO3D/train_ABF10/model.glb?v=902ef8115baf","availableFrames":116}}},{"key":"HO3D/train_BB13","label":"HO3D / train_BB13","dataset":"HO3D","sample":"train_BB13","frameCount":134,"sourceFrameCount":1606,"sourceFps":30.0,"renderedFps":2.5,"frameStride":12,"imageWidth":640,"imageHeight":480,"videoSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/videos/ho3d-train-bb13.mp4?v=782cdcdd145c","dataSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/data/ho3d-train-bb13.poses.json.gz?v=af85c56b6c9e","methods":{"sam3d_gt_depth":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/sam3d_gt_depth/HO3D/train_BB13/model.glb?v=f5efb69c37ee","availableFrames":134},"foundationpose_gt_depth_gt_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/gt/HO3D/train_BB13/model.glb?v=21b43baeec23","availableFrames":134},"foundationpose_vggt_depth_gt_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/gt/HO3D/train_BB13/model.glb?v=21b43baeec23","availableFrames":134},"foundationpose_vggt_depth_sam3d_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/sam3d_vggt_depth/HO3D/train_BB13/model.glb?v=8a42d49ae6ab","availableFrames":134},"foundationpose_vggt_depth_forehoi_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/forehoi_vggt_depth/HO3D/train_BB13/model.glb?v=119b7f283d36","availableFrames":134}}},{"key":"HO3D/train_GPMF10","label":"HO3D / train_GPMF10","dataset":"HO3D","sample":"train_GPMF10","frameCount":91,"sourceFrameCount":1092,"sourceFps":30.0,"renderedFps":2.5,"frameStride":12,"imageWidth":640,"imageHeight":480,"videoSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/videos/ho3d-train-gpmf10.mp4?v=d4042668006f","dataSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/data/ho3d-train-gpmf10.poses.json.gz?v=75b4a9232542","methods":{"sam3d_gt_depth":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/sam3d_gt_depth/HO3D/train_GPMF10/model.glb?v=fd11d08e9323","availableFrames":91},"foundationpose_gt_depth_gt_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/gt/HO3D/train_GPMF10/model.glb?v=9200706596c4","availableFrames":91},"foundationpose_vggt_depth_gt_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/gt/HO3D/train_GPMF10/model.glb?v=9200706596c4","availableFrames":91},"foundationpose_vggt_depth_sam3d_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/sam3d_vggt_depth/HO3D/train_GPMF10/model.glb?v=bd099e3c95f0","availableFrames":91},"foundationpose_vggt_depth_forehoi_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/forehoi_vggt_depth/HO3D/train_GPMF10/model.glb?v=9aa49c15510b","availableFrames":91}}},{"key":"HO3D/train_GSF14","label":"HO3D / train_GSF14","dataset":"HO3D","sample":"train_GSF14","frameCount":133,"sourceFrameCount":1592,"sourceFps":30.0,"renderedFps":2.5,"frameStride":12,"imageWidth":640,"imageHeight":480,"videoSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/videos/ho3d-train-gsf14.mp4?v=1fc55d12a7da","dataSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/data/ho3d-train-gsf14.poses.json.gz?v=ba60ed6831f8","methods":{"sam3d_gt_depth":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/sam3d_gt_depth/HO3D/train_GSF14/model.glb?v=835cee4662da","availableFrames":133},"foundationpose_gt_depth_gt_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/gt/HO3D/train_GSF14/model.glb?v=2ba2536b6125","availableFrames":133},"foundationpose_vggt_depth_gt_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/gt/HO3D/train_GSF14/model.glb?v=2ba2536b6125","availableFrames":133},"foundationpose_vggt_depth_sam3d_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/sam3d_vggt_depth/HO3D/train_GSF14/model.glb?v=18517896e03d","availableFrames":133},"foundationpose_vggt_depth_forehoi_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/forehoi_vggt_depth/HO3D/train_GSF14/model.glb?v=becbe0807f12","availableFrames":42}}},{"key":"HO3D/train_MC4","label":"HO3D / train_MC4","dataset":"HO3D","sample":"train_MC4","frameCount":75,"sourceFrameCount":896,"sourceFps":30.0,"renderedFps":2.5,"frameStride":12,"imageWidth":640,"imageHeight":480,"videoSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/videos/ho3d-train-mc4.mp4?v=a12178d38eb5","dataSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/data/ho3d-train-mc4.poses.json.gz?v=60fc34f81c9a","methods":{"sam3d_gt_depth":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/sam3d_gt_depth/HO3D/train_MC4/model.glb?v=ef77019d0cd7","availableFrames":75},"foundationpose_gt_depth_gt_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/gt/HO3D/train_MC4/model.glb?v=6d4acdbba89b","availableFrames":75},"foundationpose_vggt_depth_gt_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/gt/HO3D/train_MC4/model.glb?v=6d4acdbba89b","availableFrames":75},"foundationpose_vggt_depth_sam3d_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/sam3d_vggt_depth/HO3D/train_MC4/model.glb?v=5cd7d5fd3111","availableFrames":75},"foundationpose_vggt_depth_forehoi_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/forehoi_vggt_depth/HO3D/train_MC4/model.glb?v=20b9d2ddab6c","availableFrames":0}}},{"key":"HO3D/train_MDF11","label":"HO3D / train_MDF11","dataset":"HO3D","sample":"train_MDF11","frameCount":234,"sourceFrameCount":2806,"sourceFps":30.0,"renderedFps":2.5,"frameStride":12,"imageWidth":640,"imageHeight":480,"videoSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/videos/ho3d-train-mdf11.mp4?v=08ddb46dd525","dataSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/data/ho3d-train-mdf11.poses.json.gz?v=ac10be3597ac","methods":{"sam3d_gt_depth":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/sam3d_gt_depth/HO3D/train_MDF11/model.glb?v=6d3a44f43a3a","availableFrames":234},"foundationpose_gt_depth_gt_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/gt/HO3D/train_MDF11/model.glb?v=18ffebe74b05","availableFrames":234},"foundationpose_vggt_depth_gt_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/gt/HO3D/train_MDF11/model.glb?v=18ffebe74b05","availableFrames":234},"foundationpose_vggt_depth_sam3d_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/sam3d_vggt_depth/HO3D/train_MDF11/model.glb?v=7ba205fa5d3e","availableFrames":234},"foundationpose_vggt_depth_forehoi_mesh":{"meshSrc":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/mesh_assets/forehoi_vggt_depth/HO3D/train_MDF11/model.glb?v=d76c1d45a2c2","availableFrames":0}}}],"assetBaseUrl":"https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets"};
+const els={
+  example:document.getElementById('example'),play:document.getElementById('play'),
+  frame:document.getElementById('frame'),frameNumber:document.getElementById('frame-number'),
+  fps:document.getElementById('fps'),readout:document.getElementById('readout'),
+  methods:document.getElementById('methods'),video:document.getElementById('video'),
+  overlay:document.getElementById('overlay'),overlayWrap:document.getElementById('overlay-wrap'),
+  overlayStatus:document.getElementById('overlay-status'),world:document.getElementById('world'),
+  loading:document.getElementById('loading'),resetView:document.getElementById('reset-view'),
+  summary:document.getElementById('summary'),hint:document.getElementById('hint')
+};
+const state={example:null,data:null,frame:0,playing:false,fps:10,loadToken:0,last:performance.now(),carry:0,models:new Map(),enabled:new Set(MANIFEST.methods.map(method=>method.key))};
+const methodByKey=new Map(MANIFEST.methods.map(method=>[method.key,method]));
+const cvToThree=new THREE.Matrix4().set(1,0,0,0,0,-1,0,0,0,0,-1,0,0,0,0,1);
+
+const overlayRenderer=new THREE.WebGLRenderer({canvas:els.overlay,alpha:true,antialias:true,preserveDrawingBuffer:false});
+overlayRenderer.setPixelRatio(Math.min(devicePixelRatio,2));
+overlayRenderer.setClearColor(0x000000,0);
+const overlayScene=new THREE.Scene();
+const overlayCamera=new THREE.Camera();
+overlayCamera.matrixAutoUpdate=false;
+overlayCamera.matrixWorld.identity();
+overlayCamera.matrixWorldInverse.identity();
+
+const worldRenderer=new THREE.WebGLRenderer({canvas:els.world,antialias:true});
+worldRenderer.setPixelRatio(Math.min(devicePixelRatio,2));
+worldRenderer.setClearColor(0xe9eef5,1);
+worldRenderer.outputColorSpace=THREE.SRGBColorSpace;
+const worldScene=new THREE.Scene();
+const worldCamera=new THREE.PerspectiveCamera(42,1,.005,100);
+worldCamera.position.set(.9,.55,1.15);
+const controls=new OrbitControls(worldCamera,els.world);
+controls.enableDamping=true;
+controls.dampingFactor=.08;
+controls.target.set(0,0,-.65);
+worldScene.add(new THREE.HemisphereLight(0xffffff,0x60708b,2.25));
+const keyLight=new THREE.DirectionalLight(0xffffff,2.4);keyLight.position.set(1.5,2,1);worldScene.add(keyLight);
+const axes=new THREE.AxesHelper(.18);worldScene.add(axes);
+const referenceCamera=new THREE.PerspectiveCamera(38,4/3,.02,.22);
+referenceCamera.position.set(0,0,0);referenceCamera.lookAt(0,0,-1);referenceCamera.updateMatrixWorld();
+const cameraHelper=new THREE.CameraHelper(referenceCamera);cameraHelper.material.transparent=true;cameraHelper.material.opacity=.48;worldScene.add(cameraHelper);
+const grid=new THREE.GridHelper(2,20,0x91a0b5,0xcbd3df);grid.position.set(0,-.35,-.8);worldScene.add(grid);
+
+const loader=new GLTFLoader();
+const gltfCache=new Map();
+function loadGltf(url){
+  if(!gltfCache.has(url))gltfCache.set(url,new Promise((resolve,reject)=>loader.load(url,gltf=>resolve(gltf.scene),undefined,reject)));
+  return gltfCache.get(url);
+}
+
+function escapeHtml(value){return String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));}
+
+function optionGroups(){
+  const groups=new Map();
+  MANIFEST.examples.forEach((example,index)=>{
+    if(!groups.has(example.dataset)){const group=document.createElement('optgroup');group.label=example.dataset;groups.set(example.dataset,group);els.example.append(group);}
+    const option=document.createElement('option');option.value=String(index);option.textContent=example.label;groups.get(example.dataset).append(option);
+  });
+}
+
+function buildMethodControls(){
+  els.methods.innerHTML=MANIFEST.methods.map(method=>`<label class="method" style="--method-color:${method.color}"><input type="checkbox" data-method="${method.key}" checked><span class="swatch"></span><span class="method-name">${escapeHtml(method.label)}</span><span class="availability" id="availability-${method.key}"></span></label>`).join('');
+  els.methods.querySelectorAll('[data-method]').forEach(input=>input.addEventListener('change',()=>{
+    if(input.checked)state.enabled.add(input.dataset.method);else state.enabled.delete(input.dataset.method);
+    updateFrame(state.frame,false);
+  }));
+}
+
+async function fetchGzipJson(url){
+  const response=await fetch(url);
+  if(!response.ok)throw new Error(`HTTP ${response.status} for ${url}`);
+  if(!response.body)throw new Error('Streaming response bodies are unavailable in this browser');
+  if(typeof DecompressionStream==='undefined')throw new Error('This browser does not support gzip DecompressionStream');
+  const stream=response.body.pipeThrough(new DecompressionStream('gzip'));
+  return new Response(stream).json();
+}
+
+function styleClone(source,color,overlay){
+  const root=source.clone(true),meshes=[];
+  root.traverse(child=>{if(child.isMesh)meshes.push(child);});
+  for(const mesh of meshes){
+    mesh.material=overlay
+      ? new THREE.MeshBasicMaterial({color,transparent:true,opacity:.24,depthWrite:false,side:THREE.DoubleSide})
+      : new THREE.MeshStandardMaterial({color,transparent:true,opacity:.46,roughness:.72,metalness:.02,depthWrite:false,side:THREE.DoubleSide});
+    if(overlay){
+      const edges=new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry,28),new THREE.LineBasicMaterial({color,transparent:true,opacity:.92}));
+      edges.renderOrder=3;mesh.add(edges);
+    }
+  }
+  root.matrixAutoUpdate=false;root.visible=false;
+  return root;
+}
+
+function disposeStyledRoot(root){
+  root.traverse(child=>{
+    if(child.material){if(Array.isArray(child.material))child.material.forEach(material=>material.dispose());else child.material.dispose();}
+    if(child.isLineSegments&&child.geometry)child.geometry.dispose();
+  });
+}
+
+function clearModels(){
+  for(const model of state.models.values()){
+    overlayScene.remove(model.overlay);worldScene.remove(model.world);
+    disposeStyledRoot(model.overlay);disposeStyledRoot(model.world);
+  }
+  state.models.clear();
+}
+
+function rowMajorMatrix(values){
+  if(!values||values.length!==16)return null;
+  return new THREE.Matrix4().set(...values);
+}
+
+function webglPose(values){
+  const matrix=rowMajorMatrix(values);
+  return matrix?matrix.premultiply(cvToThree):null;
+}
+
+function configureOverlayCamera(intrinsics){
+  if(!state.example||!intrinsics)return;
+  const [fx,,cx,,fy,cy]=intrinsics,w=state.example.imageWidth,h=state.example.imageHeight,near=.005,far=100;
+  overlayCamera.projectionMatrix.set(
+    2*fx/w,0,1-2*cx/w,0,
+    0,2*fy/h,2*cy/h-1,0,
+    0,0,-(far+near)/(far-near),-2*far*near/(far-near),
+    0,0,-1,0
+  );
+  overlayCamera.projectionMatrixInverse.copy(overlayCamera.projectionMatrix).invert();
+}
+
+function renderAll(){
+  resizeRenderers();
+  overlayRenderer.render(overlayScene,overlayCamera);
+  controls.update();
+  worldRenderer.render(worldScene,worldCamera);
+}
+
+function resizeRenderer(renderer,canvas,camera){
+  const width=Math.max(1,Math.round(canvas.clientWidth)),height=Math.max(1,Math.round(canvas.clientHeight));
+  const pixelRatio=renderer.getPixelRatio();
+  if(canvas.width!==Math.round(width*pixelRatio)||canvas.height!==Math.round(height*pixelRatio)){
+    renderer.setSize(width,height,false);
+    if(camera&&camera.isPerspectiveCamera){camera.aspect=width/height;camera.updateProjectionMatrix();}
+  }
+}
+
+function resizeRenderers(){
+  resizeRenderer(overlayRenderer,els.overlay,null);
+  resizeRenderer(worldRenderer,els.world,worldCamera);
+}
+
+function updateReadout(){
+  if(!state.example||!state.data)return;
+  const source=state.data.frameIds[state.frame];
+  els.frame.value=String(state.frame);els.frameNumber.value=String(state.frame);
+  els.readout.textContent=`Sample ${state.frame} / ${state.example.frameCount-1} · source frame ${source}`;
+}
+
+function updateFrame(frame,seekVideo=true){
+  if(!state.example||!state.data)return;
+  state.frame=Math.max(0,Math.min(state.example.frameCount-1,Math.round(Number(frame)||0)));
+  configureOverlayCamera(state.data.intrinsics[state.frame]);
+  let visible=0,missing=0;
+  for(const method of MANIFEST.methods){
+    const model=state.models.get(method.key),pose=state.data.methods[method.key]?.poses[state.frame]||null;
+    const matrix=state.enabled.has(method.key)?webglPose(pose):null;
+    if(model){
+      model.overlay.visible=Boolean(matrix);model.world.visible=Boolean(matrix);
+      if(matrix){
+        model.overlay.matrix.copy(matrix);model.world.matrix.copy(matrix);
+        model.overlay.matrixWorldNeedsUpdate=true;model.world.matrixWorldNeedsUpdate=true;visible++;
+      }else if(state.enabled.has(method.key)&&!pose)missing++;
+    }
+  }
+  els.overlayStatus.textContent=`${visible} visible${missing?` · ${missing} missing this frame`:''}`;
+  updateReadout();
+  if(seekVideo&&els.video.readyState>=1){
+    const target=(state.frame+.15)/state.example.renderedFps;
+    if(Math.abs(els.video.currentTime-target)>.02)try{els.video.currentTime=target;}catch(_){/* metadata race */}
+  }
+  renderAll();
+}
+
+function pause(){state.playing=false;els.play.textContent='Play';els.play.setAttribute('aria-pressed','false');els.video.pause();}
+function play(){
+  if(!state.example||!state.data)return;
+  state.playing=true;state.last=performance.now();state.carry=0;els.play.textContent='Pause';els.play.setAttribute('aria-pressed','true');
+  const rate=state.fps/state.example.renderedFps;
+  try{els.video.playbackRate=Math.max(.1,Math.min(16,rate));els.video.play().catch(()=>{});}catch(_){/* rAF fallback below */}
+}
+
+function setFps(value){
+  state.fps=Math.max(1,Math.min(30,Number(value)||10));els.fps.value=String(state.fps);
+  if(state.playing&&state.example)try{els.video.playbackRate=Math.max(.1,Math.min(16,state.fps/state.example.renderedFps));}catch(_){/* fallback */}
+}
+
+function fitWorld(){
+  const box=new THREE.Box3();let found=false;
+  for(const model of state.models.values())if(model.world.visible){model.world.updateMatrixWorld(true);const next=new THREE.Box3().setFromObject(model.world);if(!next.isEmpty()){box.union(next);found=true;}}
+  if(!found){controls.target.set(0,0,-.7);worldCamera.position.set(.9,.55,1.15);controls.update();return;}
+  const center=box.getCenter(new THREE.Vector3()),size=Math.max(box.getSize(new THREE.Vector3()).length(),.08);
+  controls.target.copy(center);worldCamera.position.copy(center).add(new THREE.Vector3(size*1.25,size*.8,size*1.55));
+  worldCamera.near=Math.max(.001,size/500);worldCamera.far=Math.max(10,size*100);worldCamera.updateProjectionMatrix();controls.update();renderAll();
+}
+
+async function selectExample(index){
+  const token=++state.loadToken;pause();clearModels();state.data=null;state.frame=0;
+  const example=MANIFEST.examples[index];state.example=example;state.fps=example.renderedFps;
+  els.fps.value=String(state.fps);els.frame.max=String(example.frameCount-1);els.frameNumber.max=String(example.frameCount-1);
+  els.overlayWrap.style.setProperty('--image-aspect',`${example.imageWidth}/${example.imageHeight}`);
+  els.loading.hidden=false;els.loading.classList.remove('error');els.loading.textContent='Loading pose bundle and meshes…';
+  els.video.pause();els.video.src=example.videoSrc;els.video.loop=true;els.video.load();
+  const url=new URL(location.href);url.searchParams.set('example',example.key);history.replaceState(null,'',url);
+  for(const method of MANIFEST.methods){
+    const available=example.methods[method.key].availableFrames;
+    document.getElementById(`availability-${method.key}`).textContent=`${available}/${example.frameCount}`;
+  }
+  try{
+    const dataPromise=fetchGzipJson(example.dataSrc);
+    const modelPromises=MANIFEST.methods.map(async method=>{
+      const source=await loadGltf(example.methods[method.key].meshSrc),color=method.color;
+      if(token!==state.loadToken)return;
+      const overlay=styleClone(source,color,true),world=styleClone(source,color,false);
+      overlayScene.add(overlay);worldScene.add(world);state.models.set(method.key,{overlay,world});
+    });
+    const data=await dataPromise;await Promise.all(modelPromises);
+    if(token!==state.loadToken)return;
+    if(data.example!==example.key||data.frameIds.length!==example.frameCount)throw new Error('Pose bundle does not match its manifest entry');
+    state.data=data;updateFrame(0,true);fitWorld();els.loading.hidden=true;
+    els.hint.textContent=`Sampling ${example.frameCount} frames at stride ${example.frameStride} from ${example.sourceFrameCount} source frames (${example.sourceFps} FPS).`;
+  }catch(error){
+    if(token!==state.loadToken)return;
+    els.loading.hidden=false;els.loading.classList.add('error');els.loading.textContent=`Could not load this example: ${error.message}`;
+    els.hint.textContent='Serve this directory over HTTP for local testing; file:// cannot fetch compressed sidecars.';
+    console.error(error);
+  }
+}
+
+function animate(now){
+  if(state.playing&&state.data&&state.example){
+    let next=state.frame;
+    if(els.video.readyState>=2&&!els.video.paused){
+      next=Math.min(state.example.frameCount-1,Math.floor(els.video.currentTime*state.example.renderedFps+.001));
+    }else{
+      state.carry+=(now-state.last)/1000*state.fps;
+      const steps=Math.floor(state.carry);
+      if(steps){next=(state.frame+steps)%state.example.frameCount;state.carry-=steps;}
+    }
+    if(next!==state.frame)updateFrame(next,false);
+  }
+  state.last=now;resizeRenderers();controls.update();worldRenderer.render(worldScene,worldCamera);requestAnimationFrame(animate);
+}
+
+optionGroups();buildMethodControls();
+els.summary.textContent=`${MANIFEST.examples.length} examples · ${MANIFEST.methods.length} experiments`;
+const requested=new URL(location.href).searchParams.get('example');
+const initial=Math.max(0,MANIFEST.examples.findIndex(example=>example.key===requested));
+els.example.value=String(initial);els.example.addEventListener('change',()=>selectExample(Number(els.example.value)));
+els.play.addEventListener('click',()=>state.playing?pause():play());
+els.frame.addEventListener('input',()=>{pause();updateFrame(els.frame.value,true);});
+els.frameNumber.addEventListener('change',()=>{pause();updateFrame(els.frameNumber.value,true);});
+els.fps.addEventListener('change',()=>setFps(els.fps.value));
+els.video.addEventListener('loadedmetadata',()=>updateFrame(state.frame,true));
+els.resetView.addEventListener('click',fitWorld);
+addEventListener('resize',renderAll);
+addEventListener('keydown',event=>{
+  if(['INPUT','SELECT','BUTTON'].includes(document.activeElement?.tagName))return;
+  if(event.code==='Space'){event.preventDefault();state.playing?pause():play();}
+  if(event.code==='ArrowRight'){pause();updateFrame(state.frame+1,true);}
+  if(event.code==='ArrowLeft'){pause();updateFrame(state.frame-1,true);}
+});
+selectExample(initial);requestAnimationFrame(animate);
+</script>
+</body>
+</html>
