@@ -11,7 +11,7 @@
   :root { color-scheme:light; --ink:#172033; --muted:#657087; --line:#d9dfeb; --panel:#fff; --bg:#f5f7fb; --accent:#315ee8; }
   * { box-sizing:border-box; }
   body { margin:0; color:var(--ink); background:var(--bg); font:14px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
-  header { position:sticky; top:0; z-index:20; padding:14px 20px 12px; border-bottom:1px solid var(--line); background:rgba(255,255,255,.97); backdrop-filter:blur(10px); }
+  header { position:sticky; top:0; z-index:20; padding:14px 20px 12px; border-bottom:1px solid var(--line); background:#fff; }
   .title-row { display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:10px; }
   h1 { margin:0; font-size:22px; }
   .summary,.status,.hint { color:var(--muted); }
@@ -30,7 +30,7 @@
   .family-head { display:flex; align-items:baseline; gap:10px; margin:0 2px 9px; }
   .family-head h2 { margin:0; font-size:19px; }
   .family-count { color:var(--muted); font-size:12px; }
-  .experiment { display:grid; grid-template-columns:minmax(190px,.28fr) minmax(360px,1.12fr) minmax(360px,1fr); gap:12px; margin-bottom:12px; padding:12px; border:1px solid var(--line); border-left:4px solid var(--method-color); border-radius:13px; background:var(--panel); box-shadow:0 7px 22px rgba(29,42,72,.055); }
+  .experiment { display:grid; grid-template-columns:minmax(190px,.28fr) minmax(360px,1.12fr) minmax(360px,1fr); gap:12px; margin-bottom:12px; padding:12px; border:1px solid var(--line); border-left:4px solid var(--method-color); border-radius:13px; background:var(--panel); box-shadow:0 7px 22px rgba(29,42,72,.055); content-visibility:auto; contain-intrinsic-size:auto 520px; }
   .experiment-info { display:flex; flex-direction:column; min-width:0; padding:5px 4px; }
   .experiment-name { margin:0 0 5px; font-size:14px; line-height:1.3; }
   .experiment-cache-title { margin:0 0 5px; overflow-wrap:anywhere; font:750 12px/1.35 ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace; color:var(--ink); }
@@ -92,11 +92,11 @@ const els={
 };
 const state={example:null,data:null,frame:0,playing:false,fps:10,loadToken:0,last:performance.now(),carry:0,views:new Map(),abortController:null,loadMethod:null,methodLoads:new Map(),renderNeeded:true};
 const cvToThree=new THREE.Matrix4().set(1,0,0,0,0,-1,0,0,0,0,-1,0,0,0,0,1);
-const renderer=new THREE.WebGLRenderer({canvas:els.surface,alpha:true,antialias:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.autoClear=false;renderer.outputColorSpace=THREE.SRGBColorSpace;
+const renderer=new THREE.WebGLRenderer({canvas:els.surface,alpha:true,antialias:false,powerPreference:'low-power'});
+renderer.setPixelRatio(Math.min(devicePixelRatio,1));renderer.autoClear=false;renderer.outputColorSpace=THREE.SRGBColorSpace;
 const loader=new GLTFLoader(),gltfCache=new Map();
 const GROUND_TRUTH_COLOR='#00d97e';
-const rowObserver=new IntersectionObserver(entries=>{for(const entry of entries){const view=state.views.get(entry.target.dataset.method);if(!view)continue;view.nearViewport=entry.isIntersecting;if(entry.isIntersecting){drawVideoFrame(view);if(state.loadMethod)state.loadMethod(view.method);}else{clearViewModels(view);state.methodLoads.delete(view.method.key);pruneGltfCache();}state.renderNeeded=true;}},{rootMargin:'700px 0px'});
+const rowObserver=new IntersectionObserver(entries=>{for(const entry of entries){const view=state.views.get(entry.target.dataset.method);if(!view)continue;view.nearViewport=entry.isIntersecting;if(entry.isIntersecting){drawVideoFrame(view);if(state.loadMethod)state.loadMethod(view.method);}else{clearViewModels(view);state.methodLoads.delete(view.method.key);pruneGltfCache();}state.renderNeeded=true;}},{rootMargin:'250px 0px'});
 
 function escapeHtml(value){return String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));}
 function loadGltf(url,signal){
@@ -115,7 +115,7 @@ function buildRows(){
     const row=els.experiments.querySelector(`[data-method="${method.key}"]`),overlaySlot=row.querySelector('.overlay-slot'),worldSlot=row.querySelector('.world-slot');
     const overlayScene=new THREE.Scene(),overlayCamera=new THREE.Camera();overlayCamera.matrixAutoUpdate=false;overlayCamera.matrixWorld.identity();overlayCamera.matrixWorldInverse.identity();
     const worldScene=new THREE.Scene(),worldCamera=new THREE.PerspectiveCamera(42,1,.005,100);worldCamera.position.set(.9,.55,1.15);
-    const controls=new OrbitControls(worldCamera,worldSlot);controls.enableDamping=true;controls.dampingFactor=.08;controls.target.set(0,0,-.65);controls.addEventListener('change',()=>{state.renderNeeded=true;});
+    const controls=new OrbitControls(worldCamera,worldSlot);controls.enableDamping=false;controls.target.set(0,0,-.65);controls.addEventListener('change',()=>{state.renderNeeded=true;});
     worldScene.add(new THREE.HemisphereLight(0xffffff,0x60708b,2.25));const light=new THREE.DirectionalLight(0xffffff,2.4);light.position.set(1.5,2,1);worldScene.add(light);
     worldScene.add(new THREE.AxesHelper(.18));const referenceCamera=new THREE.PerspectiveCamera(38,4/3,.02,.22);referenceCamera.lookAt(0,0,-1);referenceCamera.updateMatrixWorld();const helper=new THREE.CameraHelper(referenceCamera);helper.material.transparent=true;helper.material.opacity=.48;worldScene.add(helper);
     const grid=new THREE.GridHelper(2,20,0x91a0b5,0xcbd3df);grid.position.set(0,-.35,-.8);worldScene.add(grid);
@@ -165,10 +165,10 @@ function renderView(view,slot,scene,camera,transparent){
   const rect=slot.getBoundingClientRect(),width=Math.round(rect.width),height=Math.round(rect.height);if(width<1||height<1||rect.bottom<=0||rect.top>=innerHeight||rect.right<=0||rect.left>=innerWidth)return;
   const left=Math.round(rect.left),bottom=Math.round(innerHeight-rect.bottom);renderer.setViewport(left,bottom,width,height);renderer.setScissor(left,bottom,width,height);renderer.setScissorTest(true);renderer.setClearColor(transparent?0x000000:0xe9eef5,transparent?0:1);renderer.clear(true,true,true);if(camera.isPerspectiveCamera&&Math.abs(camera.aspect-width/height)>.001){camera.aspect=width/height;camera.updateProjectionMatrix();}renderer.render(scene,camera);
 }
-function render(){renderer.setSize(innerWidth,innerHeight,false);renderer.clear();for(const view of state.views.values()){renderView(view,view.overlaySlot,view.overlayScene,view.overlayCamera,true);renderView(view,view.worldSlot,view.worldScene,view.worldCamera,false);}renderer.setScissorTest(false);state.renderNeeded=false;}
+function ensureRendererSize(){const ratio=renderer.getPixelRatio(),width=Math.max(1,Math.floor(innerWidth*ratio)),height=Math.max(1,Math.floor(innerHeight*ratio));if(els.surface.width!==width||els.surface.height!==height)renderer.setSize(innerWidth,innerHeight,false);}
+function render(){ensureRendererSize();renderer.clear();for(const view of state.views.values())if(view.nearViewport){renderView(view,view.overlaySlot,view.overlayScene,view.overlayCamera,true);renderView(view,view.worldSlot,view.worldScene,view.worldCamera,false);}renderer.setScissorTest(false);state.renderNeeded=false;}
 function animate(now){
   if(state.playing&&state.data){let next=state.frame;if(els.video.readyState>=2&&!els.video.paused)next=Math.min(state.example.frameCount-1,Math.floor(els.video.currentTime*state.example.renderedFps+.001));else{state.carry+=(now-state.last)/1000*state.fps;const steps=Math.floor(state.carry);if(steps){next=(state.frame+steps)%state.example.frameCount;state.carry-=steps;}}if(next!==state.frame)updateFrame(next,false);}
-  for(const view of state.views.values()){const rect=view.worldSlot.getBoundingClientRect();if(rect.bottom>0&&rect.top<innerHeight&&view.controls.update())state.renderNeeded=true;}
   state.last=now;if(state.renderNeeded)render();requestAnimationFrame(animate);
 }
 
