@@ -70,6 +70,7 @@ const worldScene=new THREE.Scene(),worldCamera=new THREE.PerspectiveCamera(42,1,
 worldCamera.position.set(.9,.55,1.15);controls.enableDamping=true;controls.target.set(0,0,-.65);controls.addEventListener('change',()=>state.renderNeeded=true);
 worldScene.add(new THREE.HemisphereLight(0xffffff,0x60708b,2.25));const light=new THREE.DirectionalLight(0xffffff,2.4);light.position.set(1.5,2,1);worldScene.add(light);
 const axes=new THREE.AxesHelper(.18);worldScene.add(axes);const grid=new THREE.GridHelper(2,20,0x91a0b5,0xcbd3df);grid.rotation.x=Math.PI/2;grid.material.transparent=true;grid.material.opacity=.38;grid.material.depthWrite=false;worldScene.add(grid);
+const FRAME_COLORS=[0xff3b30,0x34c759,0x0a84ff],frameShaftGeometry=new THREE.CylinderGeometry(.014,.014,.72,8),frameHeadGeometry=new THREE.ConeGeometry(.055,.28,10),frameOriginGeometry=new THREE.SphereGeometry(.045,10,6);frameShaftGeometry.translate(0,.36,0);frameHeadGeometry.translate(0,.86,0);
 
 function escapeHtml(value){return String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));}
 function assetUrl(url){if(!useLocalAssets)return url;const parsed=new URL(url,location.href);return parsed.pathname.slice(1)+parsed.search;}
@@ -80,9 +81,15 @@ function loadGltf(url,signal){
   return gltfCache.get(url);
 }
 function edgeGeometry(geometry){if(!edgeGeometryCache.has(geometry.uuid))edgeGeometryCache.set(geometry.uuid,new THREE.EdgesGeometry(geometry,28));return edgeGeometryCache.get(geometry.uuid);}
+function objectFrame(source,overlay){
+  source.updateMatrixWorld(true);const size=new THREE.Box3().setFromObject(source).getSize(new THREE.Vector3()),length=Math.max(size.x,size.y,size.z)*.7||.1,frame=new THREE.Group(),makeMaterial=color=>new THREE.MeshBasicMaterial({color,depthTest:!overlay,depthWrite:!overlay,toneMapped:false}),origin=new THREE.Mesh(frameOriginGeometry,makeMaterial(0xffffff));origin.renderOrder=200;frame.add(origin);
+  for(let axis=0;axis<3;axis++){const stick=new THREE.Group(),material=makeMaterial(FRAME_COLORS[axis]),shaft=new THREE.Mesh(frameShaftGeometry,material),head=new THREE.Mesh(frameHeadGeometry,material);shaft.renderOrder=head.renderOrder=200;stick.add(shaft,head);if(axis===0)stick.rotation.z=-Math.PI/2;else if(axis===2)stick.rotation.x=Math.PI/2;frame.add(stick);}
+  frame.scale.setScalar(length);frame.name='Object XYZ frame';return frame;
+}
 function styledClone(source,method,overlay,index){
   const groundTruth=method.key===GROUND_TRUTH.key,root=source.clone(true),opacity=groundTruth?(overlay?.10:.16):(overlay?.20:.42);
   root.traverse(mesh=>{if(!mesh.isMesh)return;mesh.material=overlay?new THREE.MeshBasicMaterial({color:method.color,transparent:true,opacity,depthWrite:false,side:THREE.DoubleSide}):new THREE.MeshStandardMaterial({color:method.color,transparent:true,opacity,roughness:.72,metalness:.02,depthWrite:false,side:THREE.DoubleSide});mesh.renderOrder=groundTruth?100:index;if(overlay){const edges=new THREE.LineSegments(edgeGeometry(mesh.geometry),new THREE.LineBasicMaterial({color:method.color,transparent:true,opacity:groundTruth?1:.88,depthWrite:false}));edges.renderOrder=groundTruth?101:index+30;mesh.add(edges);}});
+  if(!groundTruth)root.add(objectFrame(source,overlay));
   root.matrixAutoUpdate=false;root.visible=false;return root;
 }
 function disposeStyled(root){if(!root)return;root.traverse(child=>{if(child.material){if(Array.isArray(child.material))child.material.forEach(material=>material.dispose());else child.material.dispose();}});}
