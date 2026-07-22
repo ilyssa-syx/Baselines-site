@@ -12,6 +12,12 @@
       "label": "HaWoR",
       "color": "#2563eb",
       "cacheTitle": "hawor_vggt_intrinsics_identity"
+    },
+    {
+      "key": "haptic",
+      "label": "HaPTIC",
+      "color": "#a855f7",
+      "cacheTitle": "haptic_vggt_intrinsics_identity"
     }
   ],
   "examples": [
@@ -271,7 +277,8 @@
       "assets": {
         "gt": "hand_assets/data/custom-0416-mug/gt.handbin.gz?v=b3ec6ed30da0",
         "dynhamr": "hand_assets/data/custom-0416-mug/dynhamr.handbin.gz?v=b3ec6ed30da0",
-        "hawor": "hand_assets/data/custom-0416-mug/hawor.handbin.gz?v=cc52c2e15372"
+        "hawor": "hand_assets/data/custom-0416-mug/hawor.handbin.gz?v=cc52c2e15372",
+        "haptic": "hand_assets/data/custom-0416-mug/haptic.handbin.gz?v=a0033484bfa5"
       },
       "availability": {
         "gt": {
@@ -289,6 +296,13 @@
           "faces": 1552
         },
         "hawor": {
+          "available": 480,
+          "frames": 240,
+          "hands": 2,
+          "vertices": 778,
+          "faces": 1552
+        },
+        "haptic": {
           "available": 480,
           "frames": 240,
           "hands": 2,
@@ -553,7 +567,8 @@
       "assets": {
         "gt": "hand_assets/data/custom-0417-mug/gt.handbin.gz?v=1292da025b23",
         "dynhamr": "hand_assets/data/custom-0417-mug/dynhamr.handbin.gz?v=1292da025b23",
-        "hawor": "hand_assets/data/custom-0417-mug/hawor.handbin.gz?v=845654c47f7d"
+        "hawor": "hand_assets/data/custom-0417-mug/hawor.handbin.gz?v=845654c47f7d",
+        "haptic": "hand_assets/data/custom-0417-mug/haptic.handbin.gz?v=e43fe1e6553f"
       },
       "availability": {
         "gt": {
@@ -572,6 +587,13 @@
         },
         "hawor": {
           "available": 211,
+          "frames": 240,
+          "hands": 2,
+          "vertices": 778,
+          "faces": 1552
+        },
+        "haptic": {
+          "available": 240,
           "frames": 240,
           "hands": 2,
           "vertices": 778,
@@ -835,7 +857,8 @@
       "assets": {
         "gt": "hand_assets/data/custom-0422-bottle-2/gt.handbin.gz?v=f2c306935ac0",
         "dynhamr": "hand_assets/data/custom-0422-bottle-2/dynhamr.handbin.gz?v=f2c306935ac0",
-        "hawor": "hand_assets/data/custom-0422-bottle-2/hawor.handbin.gz?v=9a4f9aba7436"
+        "hawor": "hand_assets/data/custom-0422-bottle-2/hawor.handbin.gz?v=9a4f9aba7436",
+        "haptic": "hand_assets/data/custom-0422-bottle-2/haptic.handbin.gz?v=ca0312d01679"
       },
       "availability": {
         "gt": {
@@ -853,6 +876,13 @@
           "faces": 1552
         },
         "hawor": {
+          "available": 480,
+          "frames": 240,
+          "hands": 2,
+          "vertices": 778,
+          "faces": 1552
+        },
+        "haptic": {
           "available": 480,
           "frames": 240,
           "hands": 2,
@@ -949,7 +979,8 @@
       "assets": {
         "gt": "hand_assets/data/dexycb-20200709-subject-01-20200709-141931-841412060263/gt.handbin.gz?v=5e5e8fe03e9e",
         "dynhamr": "hand_assets/data/dexycb-20200709-subject-01-20200709-141931-841412060263/dynhamr.handbin.gz?v=ab3e86c52c9c",
-        "hawor": "hand_assets/data/dexycb-20200709-subject-01-20200709-141931-841412060263/hawor.handbin.gz?v=35b6711c473b"
+        "hawor": "hand_assets/data/dexycb-20200709-subject-01-20200709-141931-841412060263/hawor.handbin.gz?v=35b6711c473b",
+        "haptic": "hand_assets/data/dexycb-20200709-subject-01-20200709-141931-841412060263/haptic.handbin.gz?v=e6fd9eda20e7"
       },
       "availability": {
         "gt": {
@@ -967,6 +998,13 @@
           "faces": 1552
         },
         "hawor": {
+          "available": 72,
+          "frames": 72,
+          "hands": 2,
+          "vertices": 778,
+          "faces": 1552
+        },
+        "haptic": {
           "available": 72,
           "frames": 72,
           "hands": 2,
@@ -1065,7 +1103,8 @@
       "assets": {
         "gt": "hand_assets/data/dexycb-20200709-subject-01-20200709-145544-932122060857/gt.handbin.gz?v=8c87ce1cad7d",
         "dynhamr": "hand_assets/data/dexycb-20200709-subject-01-20200709-145544-932122060857/dynhamr.handbin.gz?v=e18e06c87d7a",
-        "hawor": "hand_assets/data/dexycb-20200709-subject-01-20200709-145544-932122060857/hawor.handbin.gz?v=48dfd6d0886c"
+        "hawor": "hand_assets/data/dexycb-20200709-subject-01-20200709-145544-932122060857/hawor.handbin.gz?v=48dfd6d0886c",
+        "haptic": "hand_assets/data/dexycb-20200709-subject-01-20200709-145544-932122060857/haptic.handbin.gz?v=44c7ecfdb5eb"
       },
       "availability": {
         "gt": {
@@ -1083,6 +1122,13 @@
           "faces": 1552
         },
         "hawor": {
+          "available": 74,
+          "frames": 74,
+          "hands": 2,
+          "vertices": 778,
+          "faces": 1552
+        },
+        "haptic": {
           "available": 74,
           "frames": 74,
           "hands": 2,
@@ -1181,7 +1227,8 @@
       "assets": {
         "gt": "hand_assets/data/dexycb-20200709-subject-01-20200709-152332-839512060362/gt.handbin.gz?v=88b955b5694c",
         "dynhamr": "hand_assets/data/dexycb-20200709-subject-01-20200709-152332-839512060362/dynhamr.handbin.gz?v=ccb517ff7a22",
-        "hawor": "hand_assets/data/dexycb-20200709-subject-01-20200709-152332-839512060362/hawor.handbin.gz?v=9f0a6d73b97e"
+        "hawor": "hand_assets/data/dexycb-20200709-subject-01-20200709-152332-839512060362/hawor.handbin.gz?v=9f0a6d73b97e",
+        "haptic": "hand_assets/data/dexycb-20200709-subject-01-20200709-152332-839512060362/haptic.handbin.gz?v=d85915eabeb3"
       },
       "availability": {
         "gt": {
@@ -1199,6 +1246,13 @@
           "faces": 1552
         },
         "hawor": {
+          "available": 74,
+          "frames": 74,
+          "hands": 2,
+          "vertices": 778,
+          "faces": 1552
+        },
+        "haptic": {
           "available": 74,
           "frames": 74,
           "hands": 2,
@@ -1290,7 +1344,8 @@
       "assets": {
         "gt": "hand_assets/data/dexycb-20200709-subject-01-20200709-152757-840412060917/gt.handbin.gz?v=2911ef1b102c",
         "dynhamr": "hand_assets/data/dexycb-20200709-subject-01-20200709-152757-840412060917/dynhamr.handbin.gz?v=ec6140c05510",
-        "hawor": "hand_assets/data/dexycb-20200709-subject-01-20200709-152757-840412060917/hawor.handbin.gz?v=6b0b171f2474"
+        "hawor": "hand_assets/data/dexycb-20200709-subject-01-20200709-152757-840412060917/hawor.handbin.gz?v=6b0b171f2474",
+        "haptic": "hand_assets/data/dexycb-20200709-subject-01-20200709-152757-840412060917/haptic.handbin.gz?v=947c9b6f0c14"
       },
       "availability": {
         "gt": {
@@ -1309,6 +1364,13 @@
         },
         "hawor": {
           "available": 67,
+          "frames": 67,
+          "hands": 2,
+          "vertices": 778,
+          "faces": 1552
+        },
+        "haptic": {
+          "available": 134,
           "frames": 67,
           "hands": 2,
           "vertices": 778,
@@ -1404,7 +1466,8 @@
       "assets": {
         "gt": "hand_assets/data/dexycb-20200709-subject-01-20200709-153103-932122061900/gt.handbin.gz?v=bd31aa2cba26",
         "dynhamr": "hand_assets/data/dexycb-20200709-subject-01-20200709-153103-932122061900/dynhamr.handbin.gz?v=aff5368615bd",
-        "hawor": "hand_assets/data/dexycb-20200709-subject-01-20200709-153103-932122061900/hawor.handbin.gz?v=36aafdbfc277"
+        "hawor": "hand_assets/data/dexycb-20200709-subject-01-20200709-153103-932122061900/hawor.handbin.gz?v=36aafdbfc277",
+        "haptic": "hand_assets/data/dexycb-20200709-subject-01-20200709-153103-932122061900/haptic.handbin.gz?v=703add0c984b"
       },
       "availability": {
         "gt": {
@@ -1422,6 +1485,13 @@
           "faces": 1552
         },
         "hawor": {
+          "available": 72,
+          "frames": 72,
+          "hands": 2,
+          "vertices": 778,
+          "faces": 1552
+        },
+        "haptic": {
           "available": 72,
           "frames": 72,
           "hands": 2,
@@ -1686,7 +1756,8 @@
       "assets": {
         "gt": "hand_assets/data/ho3d-train-abf10/gt.handbin.gz?v=87a44430065e",
         "dynhamr": "hand_assets/data/ho3d-train-abf10/dynhamr.handbin.gz?v=11259b38689c",
-        "hawor": "hand_assets/data/ho3d-train-abf10/hawor.handbin.gz?v=43113a3d0d35"
+        "hawor": "hand_assets/data/ho3d-train-abf10/hawor.handbin.gz?v=43113a3d0d35",
+        "haptic": "hand_assets/data/ho3d-train-abf10/haptic.handbin.gz?v=530e708ee730"
       },
       "availability": {
         "gt": {
@@ -1705,6 +1776,13 @@
         },
         "hawor": {
           "available": 300,
+          "frames": 240,
+          "hands": 2,
+          "vertices": 778,
+          "faces": 1552
+        },
+        "haptic": {
+          "available": 480,
           "frames": 240,
           "hands": 2,
           "vertices": 778,
@@ -1968,7 +2046,8 @@
       "assets": {
         "gt": "hand_assets/data/ho3d-train-bb13/gt.handbin.gz?v=be7aecc7de6e",
         "dynhamr": "hand_assets/data/ho3d-train-bb13/dynhamr.handbin.gz?v=2a0b9473d75f",
-        "hawor": "hand_assets/data/ho3d-train-bb13/hawor.handbin.gz?v=33e1e9eb11b0"
+        "hawor": "hand_assets/data/ho3d-train-bb13/hawor.handbin.gz?v=33e1e9eb11b0",
+        "haptic": "hand_assets/data/ho3d-train-bb13/haptic.handbin.gz?v=2ea59d3a93b3"
       },
       "availability": {
         "gt": {
@@ -1986,6 +2065,13 @@
           "faces": 1552
         },
         "hawor": {
+          "available": 240,
+          "frames": 240,
+          "hands": 2,
+          "vertices": 778,
+          "faces": 1552
+        },
+        "haptic": {
           "available": 240,
           "frames": 240,
           "hands": 2,
@@ -2250,7 +2336,8 @@
       "assets": {
         "gt": "hand_assets/data/ho3d-train-gpmf10/gt.handbin.gz?v=6dfbf951b666",
         "dynhamr": "hand_assets/data/ho3d-train-gpmf10/dynhamr.handbin.gz?v=2700d05c5783",
-        "hawor": "hand_assets/data/ho3d-train-gpmf10/hawor.handbin.gz?v=8ce011773be6"
+        "hawor": "hand_assets/data/ho3d-train-gpmf10/hawor.handbin.gz?v=8ce011773be6",
+        "haptic": "hand_assets/data/ho3d-train-gpmf10/haptic.handbin.gz?v=824942f22e6d"
       },
       "availability": {
         "gt": {
@@ -2269,6 +2356,13 @@
         },
         "hawor": {
           "available": 240,
+          "frames": 240,
+          "hands": 2,
+          "vertices": 778,
+          "faces": 1552
+        },
+        "haptic": {
+          "available": 480,
           "frames": 240,
           "hands": 2,
           "vertices": 778,
@@ -2532,7 +2626,8 @@
       "assets": {
         "gt": "hand_assets/data/ho3d-train-gsf14/gt.handbin.gz?v=699ffa6b44bc",
         "dynhamr": "hand_assets/data/ho3d-train-gsf14/dynhamr.handbin.gz?v=e2fd957eeea2",
-        "hawor": "hand_assets/data/ho3d-train-gsf14/hawor.handbin.gz?v=247dfad9ee63"
+        "hawor": "hand_assets/data/ho3d-train-gsf14/hawor.handbin.gz?v=247dfad9ee63",
+        "haptic": "hand_assets/data/ho3d-train-gsf14/haptic.handbin.gz?v=a2c509301e27"
       },
       "availability": {
         "gt": {
@@ -2550,6 +2645,13 @@
           "faces": 1552
         },
         "hawor": {
+          "available": 240,
+          "frames": 240,
+          "hands": 2,
+          "vertices": 778,
+          "faces": 1552
+        },
+        "haptic": {
           "available": 240,
           "frames": 240,
           "hands": 2,
@@ -2814,7 +2916,8 @@
       "assets": {
         "gt": "hand_assets/data/ho3d-train-mc4/gt.handbin.gz?v=41cd6f7cb515",
         "dynhamr": "hand_assets/data/ho3d-train-mc4/dynhamr.handbin.gz?v=8f4c035c6986",
-        "hawor": "hand_assets/data/ho3d-train-mc4/hawor.handbin.gz?v=fdda40b3fb19"
+        "hawor": "hand_assets/data/ho3d-train-mc4/hawor.handbin.gz?v=fdda40b3fb19",
+        "haptic": "hand_assets/data/ho3d-train-mc4/haptic.handbin.gz?v=7f85b1e49199"
       },
       "availability": {
         "gt": {
@@ -2832,6 +2935,13 @@
           "faces": 1552
         },
         "hawor": {
+          "available": 240,
+          "frames": 240,
+          "hands": 2,
+          "vertices": 778,
+          "faces": 1552
+        },
+        "haptic": {
           "available": 240,
           "frames": 240,
           "hands": 2,
@@ -3096,7 +3206,8 @@
       "assets": {
         "gt": "hand_assets/data/ho3d-train-mdf11/gt.handbin.gz?v=e635e62fd8af",
         "dynhamr": "hand_assets/data/ho3d-train-mdf11/dynhamr.handbin.gz?v=00573569aacd",
-        "hawor": "hand_assets/data/ho3d-train-mdf11/hawor.handbin.gz?v=7fabfeaf45a1"
+        "hawor": "hand_assets/data/ho3d-train-mdf11/hawor.handbin.gz?v=7fabfeaf45a1",
+        "haptic": "hand_assets/data/ho3d-train-mdf11/haptic.handbin.gz?v=2c997bee8b02"
       },
       "availability": {
         "gt": {
@@ -3115,6 +3226,13 @@
         },
         "hawor": {
           "available": 240,
+          "frames": 240,
+          "hands": 2,
+          "vertices": 778,
+          "faces": 1552
+        },
+        "haptic": {
+          "available": 480,
           "frames": 240,
           "hands": 2,
           "vertices": 778,
