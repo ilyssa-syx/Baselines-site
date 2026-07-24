@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SAM3D mesh ablation</title>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.179.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.179.1/examples/jsm/"}}</script>
+<style>
+:root{color-scheme:light;--ink:#172033;--muted:#657087;--line:#d9dfeb;--panel:#fff;--bg:#f5f7fb;--accent:#315ee8;--gt:#00b875}*{box-sizing:border-box}body{margin:0;color:var(--ink);background:var(--bg);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}header{position:relative;z-index:20;padding:14px 20px 12px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.97)}.title-row{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:10px}.title{display:flex;align-items:baseline;gap:12px}.home{color:var(--muted);font-size:12px;font-weight:750;text-decoration:none}.home:hover{color:var(--accent)}h1{margin:0;font-size:22px}.summary,.status,.hint{color:var(--muted)}.toolbar{display:flex;flex-wrap:wrap;align-items:end;gap:9px}label.control{display:grid;gap:4px;color:var(--muted);font-size:11px;font-weight:750}select,input,button{min-height:35px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font:inherit}select{min-width:min(430px,80vw);padding:5px 9px}input[type=number]{width:84px;padding:5px 8px;font-variant-numeric:tabular-nums}button{padding:5px 12px;cursor:pointer;font-weight:750}button:hover,button[aria-pressed=true]{border-color:var(--accent);color:var(--accent);background:#f4f7ff}.timeline{flex:1 1 320px;min-width:min(360px,90vw)}input[type=range]{width:100%;padding:0;accent-color:var(--accent)}.readout{min-width:195px;color:var(--muted);font-size:12px;text-align:right;font-variant-numeric:tabular-nums}.layers{margin-top:11px;border:1px solid var(--line);border-radius:11px;background:#fafbfe}.layers summary{display:flex;align-items:center;gap:8px;padding:9px 11px;cursor:pointer;font-size:12px;font-weight:800;list-style:none}.layers summary::-webkit-details-marker{display:none}.layers summary::before{content:"▸";color:var(--muted);transition:transform .15s}.layers[open] summary::before{transform:rotate(90deg)}.layer-count{margin-left:auto;color:var(--muted);font-weight:650}.layer-body{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;padding:0 10px 10px}.family{min-width:0;padding:9px;border:1px solid var(--line);border-radius:9px;background:#fff}.family-head{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:7px}.family-name{font-size:11px;font-weight:850}.family-actions{display:flex;gap:4px}.family-actions button,.bulk button{min-height:25px;padding:2px 7px;font-size:10px}.layer-buttons{display:flex;flex-wrap:wrap;gap:5px}.layer{position:relative;max-width:100%;min-height:29px;padding:3px 8px 3px 22px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px}.layer::before{content:"";position:absolute;left:8px;top:50%;width:8px;height:8px;border-radius:50%;background:var(--layer-color);transform:translateY(-50%)}.layer[aria-pressed=false]{color:var(--muted);border-color:var(--line);background:#fff}.layer[aria-pressed=false]::before{opacity:.25}.gt-layer{--layer-color:var(--gt)}.bulk{display:flex;flex-wrap:wrap;align-items:center;gap:5px}.bulk strong{margin-right:3px;font-size:11px}main{max-width:1600px;margin:auto;padding:18px}.comparison{display:grid;grid-template-columns:minmax(380px,1.12fr) minmax(380px,1fr);gap:14px;padding:12px;border:1px solid var(--line);border-radius:13px;background:var(--panel);box-shadow:0 7px 22px rgba(29,42,72,.055)}.visual{min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:10px;background:#fff}.visual-head{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:42px;padding:7px 10px;border-bottom:1px solid var(--line);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.035em}.visual-head button{min-height:25px;padding:2px 8px;font-size:10px;text-transform:none;letter-spacing:0}.viewport{position:relative;width:100%;aspect-ratio:var(--image-aspect,4/3);overflow:hidden}.overlay-slot{background:#090d17}.overlay-slot canvas{position:absolute;inset:0;width:100%;height:100%;display:block}.world-slot{background:radial-gradient(circle at 50% 38%,#fff 0,#e8edf4 72%,#dce3ec 100%);cursor:grab;touch-action:none}.world-slot:active{cursor:grabbing}.axis-key{position:absolute;left:10px;bottom:9px;z-index:6;padding:5px 7px;border:1px solid rgba(255,255,255,.5);border-radius:6px;color:#fff;background:rgba(20,28,42,.72);font:700 10px/1.25 ui-monospace,monospace;pointer-events:none}.axis-x{color:#ff6b6b}.axis-y{color:#69db7c}.axis-z{color:#74c0fc}#render-surface{position:fixed;inset:0;z-index:5;width:100vw;height:100vh;pointer-events:none}#source-video{display:none}.hint{margin:8px 2px 0;font-size:12px}@media(max-width:820px){header{padding:12px}.title-row{align-items:flex-start}.summary{text-align:right}.comparison{grid-template-columns:1fr}.readout{min-width:0}main{padding:10px}.layer-body{grid-template-columns:1fr}}@media(max-width:520px){h1{font-size:19px}.title{display:grid;gap:2px}.comparison{padding:8px}select{min-width:min(100%,90vw)}}
+</style>
+</head>
+<body>
+<header>
+  <div class="title-row">
+    <div class="title"><a class="home" href="../../poses.html">← Unified poses</a><h1>SAM3D mesh ablation</h1></div>
+    <span class="summary" id="summary">Loading manifest…</span>
+  </div>
+  <div class="toolbar">
+    <label class="control">Dataset / example<select id="example"></select></label>
+    <button id="play" type="button">Play</button>
+    <label class="control timeline">Frame<input id="frame" type="range" min="0" max="0" value="0" step="1"></label>
+    <label class="control">Frame #<input id="frame-number" type="number" min="0" max="0" value="0" step="1"></label>
+    <label class="control">Playback FPS<input id="fps" type="number" min="1" max="30" value="10" step="0.5"></label>
+    <span class="readout" id="readout">Frame 0</span>
+  </div>
+  <details class="layers" open>
+    <summary>Visible pose layers <span class="layer-count" id="layer-count"></span></summary>
+    <div class="layer-body" id="layer-groups"></div>
+  </details>
+</header>
+<main>
+  <article class="comparison">
+    <section class="visual">
+      <div class="visual-head"><span>2D camera overlay</span><span class="status" id="overlay-status">Waiting</span></div>
+      <div class="viewport overlay-slot" id="overlay-slot"><canvas id="video-frame"></canvas></div>
+    </section>
+    <section class="visual">
+      <div class="visual-head"><span>3D camera-space poses</span><button id="reset" type="button">Reset view</button></div>
+      <div class="viewport world-slot" id="world-slot"><span class="axis-key"><b class="axis-x">X</b> right · <b class="axis-y">Y</b> up · <b class="axis-z">Z</b> back</span></div>
+    </section>
+  </article>
+  <p class="hint" id="hint">Every enabled method is drawn in both panels at the same frame.</p>
+</main>
+<video id="source-video" muted playsinline preload="auto" crossorigin="anonymous"></video>
+<canvas id="render-surface"></canvas>
+
+<script type="module">
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+
+const GROUND_TRUTH={key:'ground-truth',label:'Annotated ground truth',color:'#00b875',family:'ground-truth',familyLabel:'Reference'};
+const POSE_FAMILIES=new Set(['sam3d_gt_depth','sam3d_flow3r_depth']);
+const els={
+  example:document.getElementById('example'),play:document.getElementById('play'),frame:document.getElementById('frame'),
+  frameNumber:document.getElementById('frame-number'),fps:document.getElementById('fps'),readout:document.getElementById('readout'),
+  summary:document.getElementById('summary'),hint:document.getElementById('hint'),layerGroups:document.getElementById('layer-groups'),
+  layerCount:document.getElementById('layer-count'),overlayStatus:document.getElementById('overlay-status'),video:document.getElementById('source-video'),
+  videoCanvas:document.getElementById('video-frame'),surface:document.getElementById('render-surface'),overlaySlot:document.getElementById('overlay-slot'),
+  worldSlot:document.getElementById('world-slot'),reset:document.getElementById('reset')
+};
+const state={manifest:null,example:null,data:null,frame:0,playing:false,fps:10,loadToken:0,last:performance.now(),carry:0,abortController:null,visible:new Set(),layers:new Map(),renderNeeded:true};
+const cvToThree=new THREE.Matrix4().set(1,0,0,0,0,-1,0,0,0,0,-1,0,0,0,0,1);
+const renderer=new THREE.WebGLRenderer({canvas:els.surface,alpha:true,antialias:false,powerPreference:'low-power'});
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.25));renderer.autoClear=false;renderer.outputColorSpace=THREE.SRGBColorSpace;
+const loader=new GLTFLoader(),gltfCache=new Map(),edgeGeometryCache=new Map();
+const useLocalAssets=['localhost','127.0.0.1'].includes(location.hostname);
+const overlayScene=new THREE.Scene(),overlayCamera=new THREE.Camera();overlayCamera.matrixAutoUpdate=false;overlayCamera.matrixWorld.identity();overlayCamera.matrixWorldInverse.identity();
+const worldScene=new THREE.Scene(),worldCamera=new THREE.PerspectiveCamera(42,1,.005,100),controls=new OrbitControls(worldCamera,els.worldSlot);
+worldCamera.position.set(.9,.55,1.15);controls.enableDamping=true;controls.target.set(0,0,-.65);controls.addEventListener('change',()=>state.renderNeeded=true);
+worldScene.add(new THREE.HemisphereLight(0xffffff,0x60708b,2.25));const light=new THREE.DirectionalLight(0xffffff,2.4);light.position.set(1.5,2,1);worldScene.add(light);
+const axes=new THREE.AxesHelper(.18);worldScene.add(axes);const grid=new THREE.GridHelper(2,20,0x91a0b5,0xcbd3df);grid.rotation.x=Math.PI/2;grid.material.transparent=true;grid.material.opacity=.38;grid.material.depthWrite=false;worldScene.add(grid);
+const FRAME_COLORS=[0xff3b30,0x34c759,0x0a84ff],frameShaftGeometry=new THREE.CylinderGeometry(.014,.014,.72,8),frameHeadGeometry=new THREE.ConeGeometry(.055,.28,10),frameOriginGeometry=new THREE.SphereGeometry(.045,10,6);frameShaftGeometry.translate(0,.36,0);frameHeadGeometry.translate(0,.86,0);
+
+function escapeHtml(value){return String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));}
+function assetUrl(url){if(!useLocalAssets)return url;const parsed=new URL(url,location.href);return '/'+parsed.pathname.slice(1)+parsed.search;}
+async function fetchJson(url,signal){const response=await fetch(url,{signal});if(!response.ok)throw new Error(`HTTP ${response.status} for ${url}`);return response.json();}
+async function fetchGzipJson(url,signal){const response=await fetch(url,{signal});if(!response.ok)throw new Error(`HTTP ${response.status} for ${url}`);if(!response.body||typeof DecompressionStream==='undefined')throw new Error('This browser cannot decompress the pose bundle');return new Response(response.body.pipeThrough(new DecompressionStream('gzip'))).json();}
+function loadGltf(url,signal){
+  if(!gltfCache.has(url)){const promise=(async()=>{const response=await fetch(url,{signal});if(!response.ok)throw new Error(`HTTP ${response.status} for ${url}`);return (await loader.parseAsync(await response.arrayBuffer(),new URL('.',new URL(url,location.href)).href)).scene;})();gltfCache.set(url,promise);promise.catch(()=>{if(gltfCache.get(url)===promise)gltfCache.delete(url);});}
+  return gltfCache.get(url);
+}
+function edgeGeometry(geometry){if(!edgeGeometryCache.has(geometry.uuid))edgeGeometryCache.set(geometry.uuid,new THREE.EdgesGeometry(geometry,28));return edgeGeometryCache.get(geometry.uuid);}
+function objectFrame(source,overlay){
+  source.updateMatrixWorld(true);const size=new THREE.Box3().setFromObject(source).getSize(new THREE.Vector3()),length=Math.max(size.x,size.y,size.z)*.7||.1,frame=new THREE.Group(),makeMaterial=color=>new THREE.MeshBasicMaterial({color,depthTest:!overlay,depthWrite:!overlay,toneMapped:false}),origin=new THREE.Mesh(frameOriginGeometry,makeMaterial(0xffffff));origin.renderOrder=200;frame.add(origin);
+  for(let axis=0;axis<3;axis++){const stick=new THREE.Group(),material=makeMaterial(FRAME_COLORS[axis]),shaft=new THREE.Mesh(frameShaftGeometry,material),head=new THREE.Mesh(frameHeadGeometry,material);shaft.renderOrder=head.renderOrder=200;stick.add(shaft,head);if(axis===0)stick.rotation.z=-Math.PI/2;else if(axis===2)stick.rotation.x=Math.PI/2;frame.add(stick);}
+  frame.scale.setScalar(length);frame.name='Object XYZ frame';return frame;
+}
+function styledClone(source,method,overlay,index){
+  const groundTruth=method.key===GROUND_TRUTH.key,root=source.clone(true),opacity=groundTruth?(overlay?.10:.16):(overlay?.20:.42);
+  root.traverse(mesh=>{if(!mesh.isMesh)return;mesh.material=overlay?new THREE.MeshBasicMaterial({color:method.color,transparent:true,opacity,depthWrite:false,side:THREE.DoubleSide}):new THREE.MeshStandardMaterial({color:method.color,transparent:true,opacity,roughness:.72,metalness:.02,depthWrite:false,side:THREE.DoubleSide});mesh.renderOrder=groundTruth?100:index;if(overlay){const edges=new THREE.LineSegments(edgeGeometry(mesh.geometry),new THREE.LineBasicMaterial({color:method.color,transparent:true,opacity:groundTruth?1:.88,depthWrite:false}));edges.renderOrder=groundTruth?101:index+30;mesh.add(edges);}});
+  if(!groundTruth)root.add(objectFrame(source,overlay));
+  root.matrixAutoUpdate=false;root.visible=false;return root;
+}
+function disposeStyled(root){if(!root)return;root.traverse(child=>{if(child.material){if(Array.isArray(child.material))child.material.forEach(material=>material.dispose());else child.material.dispose();}});}
+function clearLayers(){for(const layer of state.layers.values()){overlayScene.remove(layer.overlay);worldScene.remove(layer.world);disposeStyled(layer.overlay);disposeStyled(layer.world);}state.layers.clear();for(const geometry of edgeGeometryCache.values())geometry.dispose();edgeGeometryCache.clear();for(const promise of gltfCache.values())promise.then(source=>source.traverse(child=>{if(child.geometry)child.geometry.dispose();if(child.material){if(Array.isArray(child.material))child.material.forEach(material=>material.dispose());else child.material.dispose();}})).catch(()=>{});gltfCache.clear();}
+function webglPose(values){return values&&values.length===16?new THREE.Matrix4().set(...values).premultiply(cvToThree):null;}
+function configureOverlayCamera(intrinsics){const [fx,,cx,,fy,cy]=intrinsics,w=state.example.imageWidth,h=state.example.imageHeight,near=.005,far=100;overlayCamera.projectionMatrix.set(2*fx/w,0,1-2*cx/w,0,0,2*fy/h,2*cy/h-1,0,0,0,-(far+near)/(far-near),-2*far*near/(far-near),0,0,-1,0);overlayCamera.projectionMatrixInverse.copy(overlayCamera.projectionMatrix).invert();}
+function optionGroups(){const groups=new Map();state.manifest.examples.forEach((example,index)=>{if(!groups.has(example.dataset)){const group=document.createElement('optgroup');group.label=example.dataset;groups.set(example.dataset,group);els.example.append(group);}const option=document.createElement('option');option.value=String(index);option.textContent=example.label;groups.get(example.dataset).append(option);});}
+function familyGroups(){const groups=[];for(const method of state.manifest.methods){let group=groups.find(item=>item.key===method.family);if(!group){group={key:method.family,label:method.familyLabel,methods:[]};groups.push(group);}group.methods.push(method);}groups.push({key:GROUND_TRUTH.family,label:GROUND_TRUTH.familyLabel,methods:[GROUND_TRUTH]});return groups;}
+function buildLayerControls(){
+  state.visible=new Set([...state.manifest.methods.map(method=>method.key),GROUND_TRUTH.key]);
+  els.layerGroups.innerHTML=familyGroups().map(group=>`<section class="family" data-family="${escapeHtml(group.key)}"><div class="family-head"><span class="family-name">${escapeHtml(group.label)}</span>${group.key===GROUND_TRUTH.family?'':`<span class="family-actions"><button type="button" data-family-action="all">All</button><button type="button" data-family-action="none">None</button></span>`}</div><div class="layer-buttons">${group.methods.map(method=>`<button class="layer${method.key===GROUND_TRUTH.key?' gt-layer':''}" type="button" data-layer="${escapeHtml(method.key)}" style="--layer-color:${method.color}" aria-pressed="true" title="${escapeHtml(method.poseCacheTitle||method.label)}">${escapeHtml(method.label)}</button>`).join('')}</div></section>`).join('')+`<section class="family bulk"><strong>All methods</strong><button type="button" data-global-action="all">Show all</button><button type="button" data-global-action="none">Hide all</button></section>`;
+  els.layerGroups.querySelectorAll('[data-layer]').forEach(button=>button.addEventListener('click',()=>setLayer(button.dataset.layer,!state.visible.has(button.dataset.layer))));
+  els.layerGroups.querySelectorAll('[data-family-action]').forEach(button=>button.addEventListener('click',()=>setFamily(button.closest('[data-family]').dataset.family,button.dataset.familyAction==='all')));
+  els.layerGroups.querySelectorAll('[data-global-action]').forEach(button=>button.addEventListener('click',()=>setMethods(button.dataset.globalAction==='all')));updateLayerControls();
+}
+function updateLayerControls(){els.layerGroups.querySelectorAll('[data-layer]').forEach(button=>button.setAttribute('aria-pressed',String(state.visible.has(button.dataset.layer))));const count=state.manifest.methods.filter(method=>state.visible.has(method.key)).length;els.layerCount.textContent=`${count} / ${state.manifest.methods.length} methods${state.visible.has(GROUND_TRUTH.key)?' + GT':''}`;}
+function setLayer(key,visible){visible?state.visible.add(key):state.visible.delete(key);updateLayerControls();updateFrame(state.frame,false);fitWorld();}
+function setFamily(family,visible){for(const method of state.manifest.methods)if(method.family===family)(visible?state.visible.add(method.key):state.visible.delete(method.key));updateLayerControls();updateFrame(state.frame,false);fitWorld();}
+function setMethods(visible){for(const method of state.manifest.methods)(visible?state.visible.add(method.key):state.visible.delete(method.key));updateLayerControls();updateFrame(state.frame,false);fitWorld();}
+function drawVideoFrame(){if(!state.example||els.video.readyState<2)return;const rect=els.videoCanvas.getBoundingClientRect(),scale=Math.min(devicePixelRatio,1.25),width=Math.min(state.example.imageWidth,Math.max(1,Math.round((rect.width||640)*scale))),height=Math.max(1,Math.round(width*state.example.imageHeight/state.example.imageWidth));if(els.videoCanvas.width!==width||els.videoCanvas.height!==height){els.videoCanvas.width=width;els.videoCanvas.height=height;}els.videoCanvas.getContext('2d',{alpha:false}).drawImage(els.video,0,0,width,height);state.renderNeeded=true;}
+function applyMatrix(layer,matrix,enabled){for(const model of [layer.overlay,layer.world]){model.visible=enabled&&Boolean(matrix);if(matrix){model.matrix.copy(matrix);model.matrixWorldNeedsUpdate=true;}}}
+function updateFrame(frame,seekVideo=true){
+  if(!state.example||!state.data)return;state.frame=Math.max(0,Math.min(state.example.frameCount-1,Math.round(Number(frame)||0)));configureOverlayCamera(state.data.intrinsics[state.frame]);let visibleCount=0,availableCount=0;
+  for(const method of state.manifest.methods){const methodData=state.data.methods[method.key],matrix=webglPose(methodData&&methodData.poses[state.frame]||null),layer=state.layers.get(method.key);if(matrix)availableCount++;if(layer){applyMatrix(layer,matrix,state.visible.has(method.key));if(matrix&&state.visible.has(method.key))visibleCount++;}}
+  const gtMatrix=webglPose(state.data.groundTruth&&state.data.groundTruth.poses[state.frame]||null),gtLayer=state.layers.get(GROUND_TRUTH.key);if(gtLayer)applyMatrix(gtLayer,gtMatrix,state.visible.has(GROUND_TRUTH.key));
+  const source=state.data.frameIds[state.frame];els.frame.value=String(state.frame);els.frameNumber.value=String(state.frame);els.readout.textContent=`Sample ${state.frame} / ${state.example.frameCount-1} · source frame ${source}`;els.overlayStatus.textContent=`${visibleCount} shown · ${availableCount} available${gtMatrix&&state.visible.has(GROUND_TRUTH.key)?' · GT shown':''}`;
+  if(seekVideo&&els.video.readyState>=1){const target=(state.frame+.15)/state.example.renderedFps;if(Math.abs(els.video.currentTime-target)>.02)try{els.video.currentTime=target;}catch(_){}}drawVideoFrame();state.renderNeeded=true;
+}
+function fitWorld(){const box=new THREE.Box3();let found=false;for(const layer of state.layers.values())if(layer.world.visible){layer.world.updateMatrixWorld(true);box.union(new THREE.Box3().setFromObject(layer.world));found=true;}if(!found){controls.target.set(0,0,-.7);worldCamera.position.set(.9,.55,1.15);controls.update();state.renderNeeded=true;return;}const center=box.getCenter(new THREE.Vector3()),size=Math.max(box.getSize(new THREE.Vector3()).length(),.08),frameSize=Math.max(size*2.2,.2);controls.target.copy(center);worldCamera.position.copy(center).add(new THREE.Vector3(size*1.25,size*.8,size*1.55));worldCamera.near=Math.max(.001,size/500);worldCamera.far=Math.max(10,size*100);worldCamera.updateProjectionMatrix();grid.position.set(center.x,center.y,center.z-size*.18);grid.scale.setScalar(frameSize/2);axes.position.set(center.x-frameSize*.42,center.y-frameSize*.42,center.z-size*.14);axes.scale.setScalar(Math.max(size*.75,.08));controls.update();state.renderNeeded=true;}
+function pause(){state.playing=false;els.play.textContent='Play';els.play.setAttribute('aria-pressed','false');els.video.pause();}
+function play(){if(!state.data)return;state.playing=true;state.last=performance.now();state.carry=0;els.play.textContent='Pause';els.play.setAttribute('aria-pressed','true');try{els.video.playbackRate=Math.max(.1,Math.min(16,state.fps/state.example.renderedFps));els.video.play().catch(()=>{});}catch(_){}}
+function setFps(value){state.fps=Math.max(1,Math.min(30,Number(value)||10));els.fps.value=String(state.fps);if(state.playing)try{els.video.playbackRate=Math.max(.1,Math.min(16,state.fps/state.example.renderedFps));}catch(_){}}
+async function selectExample(index){
+  const token=++state.loadToken;pause();if(state.abortController)state.abortController.abort();clearLayers();const controller=new AbortController();state.abortController=controller;state.data=null;state.frame=0;state.renderNeeded=true;const example=state.manifest.examples[index];state.example=example;state.fps=example.renderedFps;
+  els.fps.value=String(state.fps);els.frame.max=String(example.frameCount-1);els.frameNumber.max=String(example.frameCount-1);els.video.src=assetUrl(example.videoSrc);els.video.loop=true;els.video.load();document.documentElement.style.setProperty('--image-aspect',`${example.imageWidth}/${example.imageHeight}`);els.overlayStatus.textContent='Loading pose data and meshes…';els.hint.textContent='Loading all pose layers for the selected example…';
+  const url=new URL(location.href);url.searchParams.set('example',example.key);history.replaceState(null,'',url);
+  try{
+    const methodSources=state.manifest.methods.map(method=>loadGltf(assetUrl(example.methods[method.key].meshSrc),controller.signal));const [data,gtSource,...sources]=await Promise.all([fetchGzipJson(assetUrl(example.dataSrc),controller.signal),loadGltf(assetUrl(example.groundTruth.meshSrc),controller.signal),...methodSources]);if(token!==state.loadToken)return;if(data.example!==example.key||data.frameIds.length!==example.frameCount)throw new Error('Pose bundle does not match manifest');state.data=data;
+    state.manifest.methods.forEach((method,i)=>{const layer={method,overlay:styledClone(sources[i],method,true,i),world:styledClone(sources[i],method,false,i)};overlayScene.add(layer.overlay);worldScene.add(layer.world);state.layers.set(method.key,layer);});const gtLayer={method:GROUND_TRUTH,overlay:styledClone(gtSource,GROUND_TRUTH,true,100),world:styledClone(gtSource,GROUND_TRUTH,false,100)};overlayScene.add(gtLayer.overlay);worldScene.add(gtLayer.world);state.layers.set(GROUND_TRUTH.key,gtLayer);
+    updateFrame(0,true);fitWorld();els.hint.textContent=`${example.frameCount} synchronized samples at stride ${example.frameStride}. Toggle any method above to compare it in the shared views.`;
+  }catch(error){if(token!==state.loadToken||error.name==='AbortError')return;els.overlayStatus.textContent=`Load failed: ${error.message}`;els.hint.textContent='Serve this directory over HTTP for local testing; file:// cannot fetch visualization assets.';console.error(error);}
+}
+function renderSlot(slot,scene,camera,transparent){const rect=slot.getBoundingClientRect(),width=Math.round(rect.width),height=Math.round(rect.height);if(width<1||height<1||rect.bottom<=0||rect.top>=innerHeight||rect.right<=0||rect.left>=innerWidth)return;const left=Math.round(rect.left),bottom=Math.round(innerHeight-rect.bottom);renderer.setViewport(left,bottom,width,height);renderer.setScissor(left,bottom,width,height);renderer.setScissorTest(true);renderer.setClearColor(transparent?0:0xe9eef5,transparent?0:1);renderer.clear(true,true,true);if(camera.isPerspectiveCamera&&Math.abs(camera.aspect-width/height)>.001){camera.aspect=width/height;camera.updateProjectionMatrix();}renderer.render(scene,camera);}
+function render(){renderer.setSize(innerWidth,innerHeight,false);renderer.setScissorTest(false);renderer.setClearColor(0,0);renderer.clear();renderSlot(els.overlaySlot,overlayScene,overlayCamera,true);renderSlot(els.worldSlot,worldScene,worldCamera,false);renderer.setScissorTest(false);state.renderNeeded=false;}
+function animate(now){if(state.playing&&state.data){let next=state.frame;if(els.video.readyState>=2&&!els.video.paused)next=Math.min(state.example.frameCount-1,Math.floor(els.video.currentTime*state.example.renderedFps+.001));else{state.carry+=(now-state.last)/1000*state.fps;const steps=Math.floor(state.carry);if(steps){next=(state.frame+steps)%state.example.frameCount;state.carry-=steps;}}if(next!==state.frame)updateFrame(next,false);}if(controls.update())state.renderNeeded=true;state.last=now;if(state.renderNeeded)render();requestAnimationFrame(animate);}
+async function boot(){
+  try{state.manifest=await fetchJson(assetUrl('https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/sam3d_ablation/manifest.json?v=3ea2f9721e2d'));state.manifest.methods=state.manifest.methods.filter(method=>POSE_FAMILIES.has(method.family));optionGroups();buildLayerControls();els.summary.textContent=`${state.manifest.examples.length} examples · ${state.manifest.methods.length} toggleable methods`;const requested=new URL(location.href).searchParams.get('example'),initial=Math.max(0,state.manifest.examples.findIndex(example=>example.key===requested));els.example.value=String(initial);els.example.addEventListener('change',()=>selectExample(Number(els.example.value)));els.play.addEventListener('click',()=>state.playing?pause():play());els.frame.addEventListener('input',()=>{pause();updateFrame(els.frame.value,true);});els.frameNumber.addEventListener('change',()=>{pause();updateFrame(els.frameNumber.value,true);});els.fps.addEventListener('change',()=>setFps(els.fps.value));els.video.addEventListener('loadedmetadata',()=>updateFrame(state.frame,true));els.video.addEventListener('seeked',drawVideoFrame);els.reset.addEventListener('click',fitWorld);addEventListener('scroll',()=>state.renderNeeded=true,{passive:true});addEventListener('resize',()=>{drawVideoFrame();state.renderNeeded=true;},{passive:true});addEventListener('keydown',event=>{const activeTag=document.activeElement&&document.activeElement.tagName;if(['INPUT','SELECT','BUTTON'].includes(activeTag))return;if(event.code==='Space'){event.preventDefault();state.playing?pause():play();}if(event.code==='ArrowRight'){pause();updateFrame(state.frame+1,true);}if(event.code==='ArrowLeft'){pause();updateFrame(state.frame-1,true);}});selectExample(initial);requestAnimationFrame(animate);}catch(error){els.summary.textContent='Manifest failed to load';els.hint.textContent=error.message;console.error(error);}
+}
+boot();
+</script>
+</body>
+</html>

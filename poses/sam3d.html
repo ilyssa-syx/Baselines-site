@@ -13,6 +13,9 @@
   body { margin:0; color:var(--ink); background:var(--bg); font:14px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
   header { position:sticky; top:0; z-index:20; padding:14px 20px 12px; border-bottom:1px solid var(--line); background:#fff; }
   .title-row { display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:10px; }
+  .title-actions { display:flex; align-items:center; gap:12px; }
+  .ablation-link { color:var(--accent); font-size:12px; font-weight:800; text-decoration:none; }
+  .ablation-link:hover { text-decoration:underline; }
   h1 { margin:0; font-size:22px; }
   .summary,.status,.hint { color:var(--muted); }
   .toolbar { display:flex; flex-wrap:wrap; align-items:end; gap:9px; }
@@ -61,7 +64,7 @@
 </head>
 <body>
 <header>
-  <div class="title-row"><h1>SAM3D</h1><span class="summary" id="summary"></span></div>
+  <div class="title-row"><h1>SAM3D</h1><div class="title-actions"><a class="ablation-link" href="sam3d/ablation.html">Mesh ablation →</a><span class="summary" id="summary"></span></div></div>
   <div class="toolbar">
     <label class="control">Dataset / example<select id="example"></select></label>
     <button id="play" type="button">Play</button>
