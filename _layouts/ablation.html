@@ -35,7 +35,7 @@
   </details>
 </header>
 <main>
-  <section class="mesh-section" id="mesh-section">
+  <section class="mesh-section" id="mesh-section"{% if page.ablation_type == "Depth" %} hidden{% endif %}>
     <div class="section-head">
       <h2>Selected ablation meshes</h2>
       <div class="mesh-actions">
@@ -50,7 +50,7 @@
     <div class="mesh-grid" id="mesh-grid"></div>
     <p class="mesh-note" id="mesh-note">GT, selected good (when available), and selected bad mesh are shown as independent 3D assets.</p>
   </section>
-  <section class="pointmap-section" id="pointmap-section" hidden>
+  <section class="pointmap-section" id="pointmap-section"{% unless page.ablation_type == "Depth" %} hidden{% endunless %}>
     <div class="pointmap-head">
       <h2>GT / Flow3R pointmaps</h2>
       <span>Shared metric camera space · synchronized to the pose frame</span>
