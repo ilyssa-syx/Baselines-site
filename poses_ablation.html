@@ -14,7 +14,7 @@ if(requested==='Shape'||requested==='Texture'||requested==='Depth'){
 }
 </script>
 <style>
-:root{color-scheme:light;--ink:#172033;--muted:#657087;--line:#d9dfeb;--bg:#f5f7fb;--panel:#fff;--accent:#315ee8}*{box-sizing:border-box}body{min-height:100vh;margin:0;color:var(--ink);background:radial-gradient(circle at 50% -20%,#e7edff 0,transparent 45%),var(--bg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}main{width:min(900px,calc(100% - 32px));margin:clamp(54px,10vh,110px) auto}.back{color:var(--muted);font-size:12px;font-weight:750;text-decoration:none}.back:hover{color:var(--accent)}header{margin:22px 0 32px}h1{margin:0 0 9px;font-size:clamp(32px,5vw,50px);line-height:1.08;letter-spacing:-.035em}p{margin:0;color:var(--muted);font-size:16px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.card{display:grid;gap:11px;min-height:210px;padding:26px;border:1px solid var(--line);border-radius:18px;color:var(--ink);background:rgba(255,255,255,.94);box-shadow:0 12px 35px rgba(29,42,72,.07);text-decoration:none;transition:transform .16s,border-color .16s,box-shadow .16s}.card:hover,.card:focus-visible{transform:translateY(-3px);border-color:var(--accent);box-shadow:0 18px 40px rgba(49,94,232,.12);outline:none}.icon{display:grid;width:52px;height:52px;place-items:center;border-radius:14px;color:var(--accent);background:#edf1ff;font-size:24px;font-weight:850}.card strong{font-size:23px}.card span:last-child{color:var(--muted);font-size:13px}.arrow{margin-top:auto;color:var(--accent);font-size:14px;font-weight:800}@media(max-width:650px){.grid{grid-template-columns:1fr}.card{min-height:170px}}
+:root{color-scheme:light;--ink:#172033;--muted:#657087;--line:#d9dfeb;--bg:#f5f7fb;--panel:#fff;--accent:#315ee8}*{box-sizing:border-box}body{min-height:100vh;margin:0;color:var(--ink);background:radial-gradient(circle at 50% -20%,#e7edff 0,transparent 45%),var(--bg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}main{width:min(1080px,calc(100% - 32px));margin:clamp(54px,10vh,110px) auto}.back{color:var(--muted);font-size:12px;font-weight:750;text-decoration:none}.back:hover{color:var(--accent)}header{margin:22px 0 32px}h1{margin:0 0 9px;font-size:clamp(32px,5vw,50px);line-height:1.08;letter-spacing:-.035em}p{margin:0;color:var(--muted);font-size:16px}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.card{display:grid;gap:11px;min-height:210px;padding:26px;border:1px solid var(--line);border-radius:18px;color:var(--ink);background:rgba(255,255,255,.94);box-shadow:0 12px 35px rgba(29,42,72,.07);text-decoration:none;transition:transform .16s,border-color .16s,box-shadow .16s}.card:hover,.card:focus-visible{transform:translateY(-3px);border-color:var(--accent);box-shadow:0 18px 40px rgba(49,94,232,.12);outline:none}.icon{display:grid;width:52px;height:52px;place-items:center;border-radius:14px;color:var(--accent);background:#edf1ff;font-size:24px;font-weight:850}.card strong{font-size:23px}.card span:last-child{color:var(--muted);font-size:13px}.arrow{margin-top:auto;color:var(--accent);font-size:14px;font-weight:800}@media(max-width:850px){.grid{grid-template-columns:1fr}.card{min-height:170px}}
 </style>
 </head>
 <body>
@@ -22,7 +22,7 @@ if(requested==='Shape'||requested==='Texture'||requested==='Depth'){
   <a class="back" href="./">← Baselines</a>
   <header>
     <h1>Pose tracking ablations</h1>
-    <p>Open a focused pose ablation or inspect the underlying metric pointmaps.</p>
+    <p>Open a focused pose ablation with synchronized visual evidence.</p>
   </header>
   <nav class="grid" aria-label="Ablation viewers">
     <a class="card" href="poses/shape_ablation.html">
@@ -40,14 +40,8 @@ if(requested==='Shape'||requested==='Texture'||requested==='Depth'){
     <a class="card" href="poses/depth_ablation.html">
       <span class="icon" aria-hidden="true">◫</span>
       <strong>Depth ablation</strong>
-      <span>Compare GT and Flow3R tracker depth with a shared GT CAD, including the frame-0 scaled-mesh FoundationPose variant.</span>
+      <span>Compare GT and Flow3R pointmaps together with their synchronized FoundationPose and SAM3D pose tracks.</span>
       <span class="arrow">Open depth experiments →</span>
-    </a>
-    <a class="card" href="pointmaps.html">
-      <span class="icon" aria-hidden="true">≋</span>
-      <strong>Pointmap comparison</strong>
-      <span>Inspect GT, Flow3R, VGGT, MoGe, and MoGe-A3 pointmaps in a synchronized metric 3D viewer.</span>
-      <span class="arrow">Open pointmaps →</span>
     </a>
   </nav>
 </main>
