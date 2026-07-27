@@ -3,17 +3,41 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="canonical" href="poses/ablation.html">
-<title>Opening shape & texture ablation…</title>
+<meta name="description" content="Choose the shape or texture pose-tracking ablation viewer.">
+<title>Pose tracking ablations</title>
 <script>
-const target=new URL('poses/ablation.html',location.href);
-target.search=location.search;
-target.hash=location.hash;
-location.replace(target);
+const params=new URL(location.href).searchParams;
+const requested=params.get('ablation')||(params.get('example')||'').split('/')[0];
+if(requested==='Shape'||requested==='Texture'){
+  const target=new URL(`poses/${requested.toLowerCase()}_ablation.html`,location.href);
+  target.search=location.search;target.hash=location.hash;location.replace(target);
+}
 </script>
+<style>
+:root{color-scheme:light;--ink:#172033;--muted:#657087;--line:#d9dfeb;--bg:#f5f7fb;--panel:#fff;--accent:#315ee8}*{box-sizing:border-box}body{min-height:100vh;margin:0;color:var(--ink);background:radial-gradient(circle at 50% -20%,#e7edff 0,transparent 45%),var(--bg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}main{width:min(900px,calc(100% - 32px));margin:clamp(54px,10vh,110px) auto}.back{color:var(--muted);font-size:12px;font-weight:750;text-decoration:none}.back:hover{color:var(--accent)}header{margin:22px 0 32px}h1{margin:0 0 9px;font-size:clamp(32px,5vw,50px);line-height:1.08;letter-spacing:-.035em}p{margin:0;color:var(--muted);font-size:16px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.card{display:grid;gap:11px;min-height:210px;padding:26px;border:1px solid var(--line);border-radius:18px;color:var(--ink);background:rgba(255,255,255,.94);box-shadow:0 12px 35px rgba(29,42,72,.07);text-decoration:none;transition:transform .16s,border-color .16s,box-shadow .16s}.card:hover,.card:focus-visible{transform:translateY(-3px);border-color:var(--accent);box-shadow:0 18px 40px rgba(49,94,232,.12);outline:none}.icon{display:grid;width:52px;height:52px;place-items:center;border-radius:14px;color:var(--accent);background:#edf1ff;font-size:24px;font-weight:850}.card strong{font-size:23px}.card span:last-child{color:var(--muted);font-size:13px}.arrow{margin-top:auto;color:var(--accent);font-size:14px;font-weight:800}@media(max-width:650px){.grid{grid-template-columns:1fr}.card{min-height:170px}}
+</style>
 </head>
 <body>
-<p><a id="fallback" href="poses/ablation.html">Open the shape & texture ablation page</a></p>
-<script>document.getElementById('fallback').href='poses/ablation.html'+location.search+location.hash;</script>
+<main>
+  <a class="back" href="./">← Baselines</a>
+  <header>
+    <h1>Pose tracking ablations</h1>
+    <p>Shape and texture experiments are split so each viewer loads only its own manifests and assets.</p>
+  </header>
+  <nav class="grid" aria-label="Ablation viewers">
+    <a class="card" href="poses/shape_ablation.html">
+      <span class="icon" aria-hidden="true">◇</span>
+      <strong>Shape ablation</strong>
+      <span>Six selected sequences with FoundationPose/SAM3D pose layers and GT/good/bad 3D meshes.</span>
+      <span class="arrow">Open shape experiments →</span>
+    </a>
+    <a class="card" href="poses/texture_ablation.html">
+      <span class="icon" aria-hidden="true">▧</span>
+      <strong>Texture ablation</strong>
+      <span>Four selected sequences using the final scale-aligned texture assets and paired frames.</span>
+      <span class="arrow">Open texture experiments →</span>
+    </a>
+  </nav>
+</main>
 </body>
 </html>
