@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="Choose the shape or texture pose-tracking ablation viewer.">
+<meta name="description" content="Choose a pose-tracking ablation or pointmap comparison viewer.">
 <title>Pose tracking ablations</title>
 <script>
 const params=new URL(location.href).searchParams;
 const requested=params.get('ablation')||(params.get('example')||'').split('/')[0];
-if(requested==='Shape'||requested==='Texture'){
+if(requested==='Shape'||requested==='Texture'||requested==='Depth'){
   const target=new URL(`poses/${requested.toLowerCase()}_ablation.html`,location.href);
   target.search=location.search;target.hash=location.hash;location.replace(target);
 }
@@ -22,7 +22,7 @@ if(requested==='Shape'||requested==='Texture'){
   <a class="back" href="./">← Baselines</a>
   <header>
     <h1>Pose tracking ablations</h1>
-    <p>Shape and texture experiments are split so each viewer loads only its own manifests and assets.</p>
+    <p>Open a focused pose ablation or inspect the underlying metric pointmaps.</p>
   </header>
   <nav class="grid" aria-label="Ablation viewers">
     <a class="card" href="poses/shape_ablation.html">
@@ -36,6 +36,18 @@ if(requested==='Shape'||requested==='Texture'){
       <strong>Texture ablation</strong>
       <span>Four selected sequences using the final scale-aligned texture assets and paired frames.</span>
       <span class="arrow">Open texture experiments →</span>
+    </a>
+    <a class="card" href="poses/depth_ablation.html">
+      <span class="icon" aria-hidden="true">◫</span>
+      <strong>Depth ablation</strong>
+      <span>Compare GT and Flow3R tracker depth with a shared GT CAD, including the frame-0 scaled-mesh FoundationPose variant.</span>
+      <span class="arrow">Open depth experiments →</span>
+    </a>
+    <a class="card" href="pointmaps.html">
+      <span class="icon" aria-hidden="true">≋</span>
+      <strong>Pointmap comparison</strong>
+      <span>Inspect GT, Flow3R, VGGT, MoGe, and MoGe-A3 pointmaps in a synchronized metric 3D viewer.</span>
+      <span class="arrow">Open pointmaps →</span>
     </a>
   </nav>
 </main>

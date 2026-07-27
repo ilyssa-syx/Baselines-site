@@ -76,12 +76,17 @@ const MANIFEST_SOURCES={
     foundationpose:'https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/fp_ablation/manifest.json?v=41fae106c747',
     sam3d:'https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/sam3d_ablation/manifest.json?v=3dcda648c198'
   },
+  depth:{
+    foundationpose:'https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/fp_ablation/manifest.json?v=41fae106c747',
+    sam3d:'https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/sam3d_ablation/manifest.json?v=3dcda648c198'
+  },
   texture:{
     foundationpose:'https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/texture_scale_aligned/manifest_foundationpose.json?v=467afd1bc9fd',
     sam3d:'https://pub-eaa718fdd45e428bb7275d91ccbfbfb5.r2.dev/pose_assets/texture_scale_aligned/manifest_sam3d.json?v=5b6656c10cb3'
   }
 };
 const POSE_FAMILIES=new Set(['foundationpose_gt_depth','foundationpose_flow3r_depth','sam3d_gt_depth','sam3d_flow3r_depth']);
+const DEPTH_METHOD_KEYS=new Set(['gt_depth_gt_mesh','flow3r_depth_gt_mesh','flow3r_depth_scaled_gt_mesh']);
 const els={
   sequence:document.getElementById('sequence'),ablation:document.getElementById('ablation'),ablationControl:document.getElementById('ablation-control'),play:document.getElementById('play'),frame:document.getElementById('frame'),
   frameNumber:document.getElementById('frame-number'),fps:document.getElementById('fps'),readout:document.getElementById('readout'),
@@ -122,15 +127,17 @@ function shapeMeshRoles(example){
 }
 function combineManifests(foundationpose,sam3d,ablationType){
   const sources={foundationpose,sam3d},methods=[];
-  for(const [source,manifest] of Object.entries(sources))for(const method of manifest.methods)if(POSE_FAMILIES.has(method.family))methods.push({...method,key:`${source}__${method.key}`,source,sourceKey:method.key});
+  for(const [source,manifest] of Object.entries(sources))for(const method of manifest.methods)if(POSE_FAMILIES.has(method.family)&&(ablationType!=='Depth'||DEPTH_METHOD_KEYS.has(method.key)))methods.push({...method,key:`${source}__${method.key}`,source,sourceKey:method.key});
   const foundationposeExamples=new Map(foundationpose.examples.map(example=>[example.key,example]));
-  const examples=sam3d.examples.filter(example=>example.key.startsWith(`${ablationType}/`)).map(sam3dExample=>{
+  const sourceAblationType=ablationType==='Depth'?'Shape':ablationType;
+  const examples=sam3d.examples.filter(example=>example.key.startsWith(`${sourceAblationType}/`)).map(sam3dExample=>{
     const sourceExamples={foundationpose:foundationposeExamples.get(sam3dExample.key),sam3d:sam3dExample};
     if(!sourceExamples.foundationpose)throw new Error(`FoundationPose is missing ${sam3dExample.key}`);
     const keyParts=sam3dExample.key.split('/'),dataset=keyParts[1],sample=keyParts.slice(2).join('/'),sequenceKey=`${dataset}/${sample}`;
     const combinedMethods={};
     for(const method of methods){const entry=sourceExamples[method.source].methods[method.sourceKey];if(!entry)throw new Error(`${method.family} is missing ${method.sourceKey} for ${sam3dExample.key}`);combinedMethods[method.key]=entry;}
-    return {...sam3dExample,dataset,sample,sequenceKey,ablationType,methodDefinitions:methods,meshRoles:sam3dExample.meshRoles||shapeMeshRoles(sourceExamples.foundationpose),methods:combinedMethods,dataSrcs:{foundationpose:sourceExamples.foundationpose.dataSrc,sam3d:sam3dExample.dataSrc}};
+    const meshRoles=ablationType==='Depth'?{gt:{label:'Ground-truth mesh',method:'Shared GT CAD',meshSrc:sam3dExample.groundTruth.meshSrc}}:(sam3dExample.meshRoles||shapeMeshRoles(sourceExamples.foundationpose));
+    return {...sam3dExample,dataset,sample,sequenceKey,ablationType,methodDefinitions:methods,meshRoles,methods:combinedMethods,dataSrcs:{foundationpose:sourceExamples.foundationpose.dataSrc,sam3d:sam3dExample.dataSrc}};
   });
   return examples;
 }
@@ -249,7 +256,7 @@ function animate(now){if(state.playing&&state.data){let next=state.frame;if(els.
 async function boot(){
   try{
     let examples;
-    if(PAGE_ABLATION_TYPE==='Shape'||PAGE_ABLATION_TYPE==='Texture'){
+    if(PAGE_ABLATION_TYPE==='Shape'||PAGE_ABLATION_TYPE==='Texture'||PAGE_ABLATION_TYPE==='Depth'){
       const source=MANIFEST_SOURCES[PAGE_ABLATION_TYPE.toLowerCase()];
       const [foundationpose,sam3d]=await Promise.all([fetchJson(assetUrl(source.foundationpose)),fetchJson(assetUrl(source.sam3d))]);
       examples=combineManifests(foundationpose,sam3d,PAGE_ABLATION_TYPE);
